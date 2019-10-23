@@ -1,0 +1,11 @@
+USE booking;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE clients;
+DROP TABLE practitioners;
+DROP TABLE rooms;
+DROP TABLE room_types;
+DROP TABLE treatments;
+DROP TABLE bookings;
+DROP TABLE avails;
+DROP TABLE users;
+SET FOREIGN_KEY_CHECKS = 1;

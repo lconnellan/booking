@@ -1,0 +1,50 @@
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+
+<meta charset="UTF-8">
+<title>Clients</title>
+<table id="clients" style="width:100%"><tbody>
+  <tr>
+    <th>First Name</th>
+    <th>Surname</th>
+    <th>Phone 1</th>
+    <th>Phone 2</th>
+    <th>Email</th>
+    <th>Address 1</th>
+    <th>Address 2</th>
+    <th>Address 3</th>
+    <th>City</th>
+    <th>County</th>
+    <th>Postcode</th>
+  </tr>
+  {% if result %}
+  {% for row in result %}
+  <tr>
+    <td> {{ row.first_name }}</td>
+    <td> {{ row.surname }}</td>
+    <td> {{ row.phone_1}}</td>
+    <td> {{ row.phone_2 }}</td>
+    <td> {{ row.email }}</td>
+    <td> {{ row.address_1 }}</td>
+    <td> {{ row.address_2 }}</td>
+    <td> {{ row.address_3 }}</td>
+    <td> {{ row.city }}</td>
+    <td> {{ row.county }}</td>
+    <td> {{ row.postcode }}</td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+</tbody></table>
