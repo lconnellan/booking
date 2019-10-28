@@ -31,20 +31,20 @@ tr:nth-child(even) {
     <th>Postcode</th>
   </tr>
   {% if result %}
-  {% for row in result %}
-  <tr>
-    <td> {{ row.first_name }}</td>
-    <td> {{ row.surname }}</td>
-    <td> {{ row.phone_1}}</td>
-    <td> {{ row.phone_2 }}</td>
-    <td> {{ row.email }}</td>
-    <td> {{ row.address_1 }}</td>
-    <td> {{ row.address_2 }}</td>
-    <td> {{ row.address_3 }}</td>
-    <td> {{ row.city }}</td>
-    <td> {{ row.county }}</td>
-    <td> {{ row.postcode }}</td>
-  </tr>
-  {% endfor %}
+    {% for row in result %}
+    <tr>
+      <td> {{ row.first_name }}</td>
+      <td> {{ row.surname }}</td>
+      <td> {{ row.phone_1}}</td>
+      <td> {{ row.phone_2 }}</td>
+      <td> {{ row.email }}</td>
+      <td> {{ row.address_1 }}</td>
+      <td> {{ row.address_2 }}</td>
+      <td> {{ row.address_3 }}</td>
+      <td> {{ row.city }}</td>
+      <td> {{ row.county }}</td>
+      <td> {{ row.postcode }}</td>
+    </tr>
+    {% endfor %}
   {% endif %}
 </tbody></table>

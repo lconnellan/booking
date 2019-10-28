@@ -46,7 +46,7 @@ CREATE TABLE if not exists treatments (
 );
 INSERT IGNORE INTO treatments (treat_id, descr, room_type_id, price, duration)
 VALUES(1, 'Lower back treatment', 1, 40.00, 1.00),
-(2, 'Sports massage', 1, 30.00, 0.30);
+(2, 'General treatment', 1, 30.00, 0.30);
 
 CREATE TABLE if not exists rooms (
   room_id SERIAL PRIMARY KEY,
@@ -73,8 +73,8 @@ CREATE TABLE if not exists bookings (
 );
 
 DELIMITER //
-DROP TRIGGER IF EXISTS test;
-CREATE TRIGGER test
+DROP TRIGGER IF EXISTS booking_conflict;
+CREATE TRIGGER booking_conflict
 BEFORE INSERT
   ON bookings FOR EACH ROW
 BEGIN
@@ -85,7 +85,7 @@ BEGIN
   AND ((start <= NEW.start AND end > NEW.start)
   OR (start >= NEW.start AND start < NEW.end));
   IF vCnt > 0 THEN
-    SET @s = 'Invalid booking time';
+    SET @s = 'Error: Booking clash';
     SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = @s;
   END IF;
 END; //
@@ -93,16 +93,46 @@ DELIMITER ;
 
 TRUNCATE bookings;
 INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, date, start, end, notes, price)
-VALUES(1, 1, 1, 1, '2019-10-05', '10:30', '11:00', NULL, 30.00),
-(2, 1, 2, 2, '2019-10-05', '9:30', '10:30', NULL, 40.00);
+VALUES(1, 1, 1, 1, '2019-10-26', '10:30', '11:00', NULL, 30.00),
+(2, 1, 2, 2, '2019-10-26', '9:30', '10:30', NULL, 40.00);
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
   prac_id BIGINT UNSIGNED NOT NULL,
-  start DATETIME NOT NULL,
-  end DATETIME NOT NULL,
+  date DATE NOT NULL,
+  start TIME NOT NULL,
+  end TIME NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
 );
+
+DELIMITER //
+DROP TRIGGER IF EXISTS avail_conflict;
+CREATE TRIGGER avail_conflict
+BEFORE INSERT
+  ON avails FOR EACH ROW
+BEGIN
+  DECLARE vCnt INT ;
+  SELECT COUNT(*) INTO vCnt FROM avails
+  WHERE (prac_id = NEW.prac_id)
+  AND date = NEW.date
+  AND ((start <= NEW.start AND end > NEW.start)
+  OR (start >= NEW.start AND start < NEW.end));
+  IF vCnt > 0 THEN
+    SET @s = 'Avail time overlap';
+    SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = @s;
+  END IF;
+END; //
+DELIMITER ;
+
+TRUNCATE avails;
+INSERT IGNORE INTO avails (avail_id, prac_id, date, start, end)
+VALUES(1, 1, '2019-10-25', '9:00', '17:00'),
+(2, 1, '2019-10-26', '9:30', '13:00'),
+(3, 1, '2019-10-27', '9:00', '17:00'),
+(4, 1, '2019-10-28', '9:00', '17:00'),
+(5, 2, '2019-10-25', '9:00', '17:00'),
+(6, 2, '2019-10-26', '9:00', '17:00'),
+(7, 2, '2019-10-27', '9:00', '17:00');
 
 CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,
