@@ -44,9 +44,10 @@ CREATE TABLE if not exists treatments (
   duration DECIMAL(18,2) NOT NULL,
   FOREIGN KEY (room_type_id) REFERENCES room_types(room_type_id)
 );
+TRUNCATE treatments;
 INSERT IGNORE INTO treatments (treat_id, descr, room_type_id, price, duration)
-VALUES(1, 'Lower back treatment', 1, 40.00, 1.00),
-(2, 'General treatment', 1, 30.00, 0.30);
+VALUES(1, 'First appointment', 1, 40.00, 1.00),
+(2, 'Follow-up appointment', 1, 30.00, 0.30);
 
 CREATE TABLE if not exists rooms (
   room_id SERIAL PRIMARY KEY,
@@ -93,8 +94,8 @@ DELIMITER ;
 
 TRUNCATE bookings;
 INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, date, start, end, notes, price)
-VALUES(1, 1, 1, 1, '2019-10-26', '10:30', '11:00', NULL, 30.00),
-(2, 1, 2, 2, '2019-10-26', '9:30', '10:30', NULL, 40.00);
+VALUES(1, 1, 1, 1, '2019-11-02', '10:30', '11:00', NULL, 30.00),
+(2, 1, 2, 2, '2019-11-03', '9:30', '10:30', NULL, 40.00);
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
@@ -111,7 +112,7 @@ CREATE TRIGGER avail_conflict
 BEFORE INSERT
   ON avails FOR EACH ROW
 BEGIN
-  DECLARE vCnt INT ;
+  DECLARE vCnt INT;
   SELECT COUNT(*) INTO vCnt FROM avails
   WHERE (prac_id = NEW.prac_id)
   AND date = NEW.date
@@ -125,14 +126,22 @@ END; //
 DELIMITER ;
 
 TRUNCATE avails;
-INSERT IGNORE INTO avails (avail_id, prac_id, date, start, end)
-VALUES(1, 1, '2019-10-25', '9:00', '17:00'),
-(2, 1, '2019-10-26', '9:30', '13:00'),
-(3, 1, '2019-10-27', '9:00', '17:00'),
-(4, 1, '2019-10-28', '9:00', '17:00'),
-(5, 2, '2019-10-25', '9:00', '17:00'),
-(6, 2, '2019-10-26', '9:00', '17:00'),
-(7, 2, '2019-10-27', '9:00', '17:00');
+DROP PROCEDURE IF EXISTS avail_populate;
+DELIMITER //
+CREATE PROCEDURE avail_populate()
+BEGIN
+  DECLARE cur_date DATE DEFAULT CURDATE();
+  WHILE cur_date < DATE_ADD(CURDATE(), INTERVAL 30 DAY) DO
+    IF DAYOFWEEK(cur_date) != 1 THEN
+      INSERT INTO avails (prac_id, date, start, end)
+      VALUES (1, cur_date, '9:00', '17:00'),
+             (2, cur_date, '9:00', '17:00');
+    END IF;
+    SET cur_date = DATE_ADD(cur_date, INTERVAL 1 DAY);
+  END WHILE;
+END; //
+DELIMITER ;
+CALL avail_populate();
 
 CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,
