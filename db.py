@@ -3,6 +3,7 @@ import pymysql
 import hashlib
 from functools import wraps
 from datetime import datetime, timedelta, date, time
+import ast
 
 app = Flask(__name__)
 
@@ -14,7 +15,8 @@ class Database:
         user = "lloyd"
         password = "cr1cket"
         db = "booking"
-        self.con = pymysql.connect(host=host, user=user, password=password, db=db, cursorclass=pymysql.cursors.DictCursor)
+        self.con = pymysql.connect(host=host, user=user, password=password, \
+                                   db=db, cursorclass=pymysql.cursors.DictCursor)
         self.cur = self.con.cursor()
     def list_category(self, category):
         self.cur.execute("SELECT * FROM " + category + " LIMIT 50")
@@ -50,6 +52,14 @@ def index():
             return redirect(url_for('clients'))
         elif request.form['category'] == "practitioners":
             return redirect(url_for('practitioners'))
+        elif request.form['category'] == "treatments":
+            return redirect(url_for('treatments'))
+        elif request.form['category'] == "login":
+            return redirect(url_for('login'))
+        elif request.form['category'] == "logout":
+            session.pop('username', None)
+            session.pop('access_lvl', None)
+            return render_template('index.html')
     return render_template('index.html')
 
 @app.route('/clients')
@@ -79,11 +89,6 @@ def login():
         password = m.hexdigest()
 
         db.authenticate(username, password)
-        # allow access to database for admin only
-        if session['access_lvl'] == 2:
-            return redirect(url_for('index'))
-        else:
-            error = 'Access level not sufficient.'
     return render_template('login.html', error=error)
 
 @app.route('/treatments', methods=['GET', 'POST'])
@@ -95,8 +100,11 @@ def treatments():
     # create treatment links
     if request.method == 'POST':
         session['treatment'] = request.form['type']
-        db.cur.execute('SELECT duration FROM treatments where descr = "' + session['treatment'] + '"')
-        session['duration'] = str(db.cur.fetchall()[0]['duration'])
+        db.cur.execute('SELECT duration, price FROM treatments where \
+                       descr = "' + session['treatment'] + '"')
+        res = [[entry['duration'], entry['price']] for entry in db.cur.fetchall()][0]
+        session['duration'] = str(res[0])
+        session['price'] = str(res[1])
         return redirect(url_for('dates'))
     return render_template('treatments.html', treatments=treatments)
 
@@ -171,9 +179,7 @@ def booking():
         return render_template('booking.html', error=error)
     # make the time periods into intervals instead
     avails_i = interval_conversion(valid_avails, avail=True)
-    print(bookings)
     bookings_i = interval_conversion(bookings)
-    print(bookings_i)
     # subtract booked periods from available ones
     for a in avails_i:
         for b in bookings_i:
@@ -193,7 +199,6 @@ def booking():
         time_slots[i] = [t.strftime('%-H:%M'), pracs]
 
     if request.method == 'POST':
-        import ast
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
         session['end'] = (datetime(1990,1,1, int(res[0].split(':')[0]), \
@@ -203,8 +208,10 @@ def booking():
         # fetch list of practitioners
         pracs = []
         for prac_id in res[1]:
-            db.cur.execute("SELECT first_name, surname FROM practitioners WHERE prac_id = " + str(prac_id))
-            pracs.append([entry['first_name'] + ' ' + entry['surname'] for entry in db.cur.fetchall()][0])
+            db.cur.execute("SELECT first_name, surname FROM practitioners \
+                           WHERE prac_id = " + str(prac_id))
+            pracs.append([[entry['first_name'] + ' ' + entry['surname'] \
+                         for entry in db.cur.fetchall()][0], prac_id])
         session['pracs'] = pracs
         return redirect(url_for('practitioner_choice'))
 
@@ -214,7 +221,9 @@ def booking():
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
 def practitioner_choice():
     if request.method == 'POST':
-        session['prac'] = request.form['type']
+        res = ast.literal_eval(request.form['type'])
+        session['prac'] = res[0]
+        session['prac_id'] = res[1]
         return redirect(url_for('confirmation'))
     return render_template('practitioner_choice.html', pracs=session['pracs'])
 
@@ -227,5 +236,19 @@ def confirmation():
             return redirect(url_for('index'))
     return render_template('confirmation.html', session=session)
 
+@app.route('/completed', methods=['GET', 'POST'])
 def completed():
+    if request.method == 'POST':
+        db = Database()
+        client_id = '1' # needs to be set up
+        room_id = session['prac_id'] # assumed each prac has own room for now
+        notes = 'NULL' # needs to be set up
+        db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \
+                       start, end, notes, price) VALUES(" + str(session['prac_id']) \
+                       + ", " + str(client_id) + ", " + str(room_id) + ", '" \
+                       + session['date'] + "', '" + session['time_slot'] + "', '" \
+                       + session['end'] + "', " + notes + ", " + session['price'] + ");")
+        db.con.commit()
+        if request.form['type'] == "return":
+            return redirect(url_for('index'))
     return render_template('completed.html')
