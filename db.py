@@ -36,12 +36,12 @@ class Database:
 def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if session['access_lvl'] == None:
+        if not 'access_lvl' in session:
             print('Login is required to continue')
-            return redirect(url_for('login'))
+            return redirect(url_for('login', next=request.endpoint))
         if session['access_lvl'] != 2:
             print('User access level insufficient')
-            return redirect(url_for('login'))
+            return redirect(url_for('login', next=request.endpoint))
         return func(*args, **kwargs)
     return wrapper
 
@@ -89,6 +89,7 @@ def login():
         password = m.hexdigest()
 
         db.authenticate(username, password)
+        return redirect(request.args.get('next') or url_for('index'))
     return render_template('login.html', error=error)
 
 @app.route('/treatments', methods=['GET', 'POST'])
@@ -252,3 +253,7 @@ def completed():
         if request.form['type'] == "return":
             return redirect(url_for('index'))
     return render_template('completed.html')
+
+@app.route('/styles')
+def styles():
+    return render_template('styles.css', content_type='application/json')

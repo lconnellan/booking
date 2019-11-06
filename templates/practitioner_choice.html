@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Practitioner Choice</title>
+</head>
+
+<body>
+<h1>Please choose a practitioner for this time slot.</h1>
+  <form method="POST">
+    {% if pracs %}
+      {% for p in pracs %}
+        <button type="submit" name="type" value='{{p}}'> {{p[0]}} </button>
+      {% endfor %}
+    {% endif %}
+  </form>
+</body>
+
+</html>

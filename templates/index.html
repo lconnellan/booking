@@ -1,17 +1,23 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 
 <head>
-<title>Index</title>
+  <title>Main Page</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
 </head>
 
 <body>
-<form method="POST">
-  <button type="submit" name="category" value="clients">Display clients</button>
-  <button type="submit" name="category" value="practitioners">Display practitioners</button>
-  <button type="submit" name="category" value="treatments">Book a session</button>
-  <button type="submit" name="category" value="login">Login</button>
-</form>
+  <form method="POST">
+    <div class="topnav">
+      <a class="active" href="{{ url_for('index') }}">Home</a>
+      <button type="submit" name="category" value="clients">Display clients</button>
+      <button type="submit" name="category" value="practitioners">Display practitioners</button>
+      <button type="submit" name="category" value="treatments">Book a session</button>
+      <button type="submit" name="category" value="login">Login</button>
+      <button type="submit" name="category" value="logout">Log out</button>
+    </div>
+  </form>
+  <h2>Home page</h2>
 </body>
 
 </html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Dates</title>
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+</head>
+
+<body>
+<h1>Please choose a date.</h1>
+<meta charset="UTF-8">
+<table id="date" style="width:100%"><tbody>
+  <form method="POST">
+  {% if date_range %}
+    <tr>
+    {% for i in range (0, 7) %}
+      <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    {% for i in range (7, 14)%}
+      <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    {% for i in range (14, 21)%}
+      <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    {% for i in range (21, 28)%}
+      <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+    {% endfor %}
+    </tr>
+  {% endif %}
+  </form>
+</tbody></table>
+</body>
+
+</html>
