@@ -2,21 +2,21 @@
 <html>
 
 <head>
-  <title>Main Page</title>
+  <title>Database</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
 </head>
 
 <body>
   <form method="POST">
     <div class="topnav">
-      <a class="active" href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('treatments') }}">Book a session</a>
       {% if not 'username' in session %}
         <a class="right" href="{{ url_for('login') }}">Login</a>
       {% endif %}
       {% if session['username'] %}
         {% if session['access_lvl'] == 2 %}
-          <a href="{{ url_for('database') }}">Access Database</a>
+          <a class="active" href="{{ url_for('database') }}">Access Database</a>
         {% endif %}
         <button class="right" type="submit" name="category" value="logout">Log out</button>
       {% endif %}
@@ -26,6 +26,9 @@
   {% if message %}
     {{ message }}
   {% endif %}
-</body>
+  {% for table in result %}
+    <a href="{{ url_for('tables', table=table['Tables_in_booking']) }}">{{table['Tables_in_booking']}}</a>
+  {% endfor %}
+</body
 
 </html>

@@ -22,6 +22,10 @@ class Database:
         self.cur.execute("SELECT * FROM " + category + " LIMIT 50")
         result = self.cur.fetchall()
         return result
+    def list_tables(self):
+        self.cur.execute("SHOW TABLES")
+        result = self.cur.fetchall()
+        return result
     def authenticate(self, username_in, password_in):
         self.cur.execute("SELECT password FROM users WHERE username = '" + username_in + "'")
         password = self.cur.fetchall()[0]['password']
@@ -48,33 +52,27 @@ def admin_required(func):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        if request.form['category'] == "clients":
-            return redirect(url_for('clients'))
-        elif request.form['category'] == "practitioners":
-            return redirect(url_for('practitioners'))
-        elif request.form['category'] == "treatments":
-            return redirect(url_for('treatments'))
-        elif request.form['category'] == "login":
-            return redirect(url_for('login'))
-        elif request.form['category'] == "logout":
+        if request.form['category'] == "logout":
             session.pop('username', None)
             session.pop('access_lvl', None)
-            return render_template('index.html')
-    return render_template('index.html')
+            msg = "You have logged out."
+            return render_template('index.html', message=msg, session=session)
+    return render_template('index.html', session=session)
 
-@app.route('/clients')
+@app.route('/database', methods=['GET', 'POST'])
 @admin_required
-def clients():
+def database():
     db = Database()
-    res = db.list_category('clients')
-    return render_template('clients.html', result=res, content_type='application/json')
+    res = db.list_tables()
+    print(res)
+    return render_template('database.html', result=res)
 
-@app.route('/practitioners')
+@app.route('/database/<table>')
 @admin_required
-def practitioners():
+def tables(table):
     db = Database()
-    res = db.list_category('practitioners')
-    return render_template('practitioners.html', result=res, content_type='application/json')
+    res = db.list_category(table)
+    return render_template('tables.html', result=res, content_type='application/json')
 
 # route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
