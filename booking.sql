@@ -94,8 +94,8 @@ DELIMITER ;
 
 TRUNCATE bookings;
 INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, date, start, end, notes, price)
-VALUES(1, 1, 1, 1, '2019-11-02', '10:30', '11:00', NULL, 30.00),
-(2, 1, 2, 2, '2019-11-03', '9:30', '10:30', NULL, 40.00);
+VALUES(1, 1, 1, 1, '2019-11-10', '10:30', '11:00', NULL, 30.00),
+(2, 1, 2, 2, '2019-11-12', '9:30', '10:30', NULL, 40.00);
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,

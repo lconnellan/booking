@@ -2,42 +2,54 @@
 <html>
 
 <head>
-<title>Tables</title>
-<style>
-table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-}
-td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-}
-tr:nth-child(even) {
-    background-color: #dddddd;
-}
-</style>
+  <title>Tables</title>
+  <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+  </style>
 </head>
 
 <body>
-<meta charset="UTF-8">
-<table id="tables" style="width:100%"><tbody>
-  {% if result %}
-    <tr>
-      {% for category in result[0] %}
-        <th>{{ category }}</th>
+  <meta charset="UTF-8">
+  <form method="POST">
+  <table id="tables" style="width:100%"><tbody>
+    {% if result %}
+      <tr>
+        {% for category in result[0] %}
+          {% if col_type[category] != 'auto' %}
+            <th>{{ category }}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% for row in result %}
+        <tr>
+          {% for category in row %}
+            {% if col_type[category] != 'auto' %}
+              <td>{{ row[category] }}</td>
+            {% endif %}
+          {% endfor %}
+          {% for category in row %}
+            {% if col_type[category] == 'auto' %}
+              <td><button type="submit" name="delete" value="{{row[category]}}"> Delete </button></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
       {% endfor %}
-    </tr>
-    {% for row in result %}
-    <tr>
-      {% for category in row %}
-      <td> {{ row[category] }}</td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  {% endif %}
-</tbody></table>
+    {% endif %}
+  </tbody></table>
+    <button type="submit" name="add" value="yes"> Add new entry </button>
+  </form>
 </body>
 
 <html>

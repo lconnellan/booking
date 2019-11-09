@@ -18,15 +18,33 @@ class Database:
         self.con = pymysql.connect(host=host, user=user, password=password, \
                                    db=db, cursorclass=pymysql.cursors.DictCursor)
         self.cur = self.con.cursor()
-    def list_category(self, category):
-        self.cur.execute("SELECT * FROM " + category + " LIMIT 50")
+    def list_table(self, table):
+        """Fetch entries from a table, ignoring auto_inc and checking if str"""
+        self.cur.execute("SELECT * FROM " + table + " LIMIT 50")
         result = self.cur.fetchall()
-        return result
+        self.cur.execute("SHOW COLUMNS FROM " + table)
+        columns = self.cur.fetchall()
+        column_type = {}
+        for col in columns:
+            if col['Extra'] == 'auto_increment':
+                column_type[col['Field']] = 'auto'
+            elif col['Type'] in ['date', 'time']:
+                column_type[col['Field']] = 'str'
+            elif 'varchar' in col['Type']:
+                column_type[col['Field']] = 'str'
+            else:
+                column_type[col['Field']] = 'num'
+        return result, column_type
     def list_tables(self):
         self.cur.execute("SHOW TABLES")
         result = self.cur.fetchall()
         return result
     def authenticate(self, username_in, password_in):
+        """Hash password and check versus stored user/pass in db"""
+        m = hashlib.md5()
+        m.update(bytes(password_in, encoding='utf-8'))
+        password_in = m.hexdigest()
+        # fetch password from db
         self.cur.execute("SELECT password FROM users WHERE username = '" + username_in + "'")
         password = self.cur.fetchall()[0]['password']
         if password_in == password:
@@ -59,34 +77,73 @@ def index():
             return render_template('index.html', message=msg, session=session)
     return render_template('index.html', session=session)
 
-@app.route('/database', methods=['GET', 'POST'])
+@app.route('/database')
 @admin_required
 def database():
     db = Database()
     res = db.list_tables()
-    print(res)
     return render_template('database.html', result=res)
 
-@app.route('/database/<table>')
+@app.route('/database/<table>', methods=['GET', 'POST'])
 @admin_required
 def tables(table):
     db = Database()
-    res = db.list_category(table)
-    return render_template('tables.html', result=res, content_type='application/json')
+    res, col_type = db.list_table(table)
+    if request.method == 'POST':
+        if 'add' in request.form:
+            return redirect(url_for('tables_add', table=table))
+        elif 'delete' in request.form:
+            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
+            try:
+                db.cur.execute("DELETE FROM " + table + " WHERE " + auto_field + \
+                               " = " + request.form['delete'])
+                db.con.commit()
+            except:
+                error = 'Error: this row cannot be deleted as another row \
+                         in the table depends upon it.'
+                return redirect(url_for('error', error=error))
+            return redirect(url_for('tables', table=table))
+    return render_template('tables.html', result=res, col_type=col_type)
 
-# route for handling the login page logic
+@app.route('/error/<error>', methods=['GET', 'POST'])
+def error(error):
+    if request.method == 'POST':
+        return redirect(url_for('index'))
+    return render_template('error.html', error=error)
+
+@app.route('/database/<table>_add', methods=['GET', 'POST'])
+@admin_required
+def tables_add(table):
+    db = Database()
+    res, col_type = db.list_table(table)
+    if request.method == 'POST':
+        if request.form['submit'] == 'yes':
+            first = True
+            for fieldname, value in request.form.items():
+                if fieldname != 'submit':
+                    if col_type[fieldname[:-1]]:
+                        value = "'" + value + "'"
+                    if first:
+                        fieldnames = fieldname[:-1]
+                        values = value
+                        first = False
+                    else:
+                        fieldnames += ', ' + fieldname[:-1]
+                        values += ', ' + value
+            db.cur.execute("INSERT IGNORE INTO " + table + "(" + fieldnames \
+                           + ") VALUES(" + values + ");")
+            db.con.commit()
+            res = db.list_table(table)[0]
+            return redirect(url_for('tables', table=table, col_type=col_type))
+    return render_template('tables_add.html', result=res, col_type=col_type)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Route for handling the login page logic"""
     error = None
     db = Database()
     if request.method == 'POST':
-        # hash the password
-        username = request.form['username']
-        m = hashlib.md5()
-        m.update(bytes(request.form['password'], encoding='utf-8'))
-        password = m.hexdigest()
-
-        db.authenticate(username, password)
+        db.authenticate(request.form['username'], request.form['password'])
         return redirect(request.args.get('next') or url_for('index'))
     return render_template('login.html', error=error)
 
@@ -127,15 +184,15 @@ def dates():
         return redirect(url_for('booking'))
     return render_template('dates.html', date_range=date_range_f)
 
-# generator function for time range
 def datetime_range(start, end, delta):
+    """Generator function for time range"""
     current = start
     while current < end:
         yield current
         current += delta
 
-# converts time data into interval format
 def interval_conversion(list, avail=False):
+    """Converts time data into interval format"""
     import intervals as intervals
     intervals_list = []
     dur_h = int(session['duration'].split('.')[0])
