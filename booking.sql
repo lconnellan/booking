@@ -2,7 +2,7 @@ USE booking;
 
 CREATE TABLE if not exists clients (
   client_id SERIAL PRIMARY KEY,
-  first_name VARCHAR(80) NOT NULL,
+  name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
   phone_1 VARCHAR(25) NOT NULL,
   phone_2 VARCHAR(25),
@@ -14,48 +14,48 @@ CREATE TABLE if not exists clients (
   county VARCHAR(50),
   postcode VARCHAR(10) NOT NULL
 );
-INSERT IGNORE INTO clients (client_id, first_name, surname, phone_1, phone_2, email, address_1, address_2, address_3, city, county, postcode)
+INSERT IGNORE INTO clients (client_id, name, surname, phone_1, phone_2, email, address_1, address_2, address_3, city, county, postcode)
 VALUES(1, 'John', 'Doe', '07923424294', NULL, 'j.doe@gmail.com', '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
 (2, 'Alice', 'Smith', '03835734709', '380476498344', 'a.smith@hotmail.co.uk', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
-  first_name VARCHAR(80) NOT NULL,
+  name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
   phone VARCHAR(25) NOT NULL,
   email VARCHAR(100) NOT NULL
 );
-INSERT IGNORE INTO practitioners (prac_id, first_name, surname, phone, email)
+INSERT IGNORE INTO practitioners (prac_id, name, surname, phone, email)
 VALUES(1, 'Wesley', 'Connellan', '030587598479', 'wesley.connellan@gmail.com'),
 (2, 'Ellie', 'Gorham', '0338236893462', 'e.gorham@gmail.com');
 
 CREATE TABLE if not exists room_types (
   room_type_id SERIAL PRIMARY KEY,
-  descr VARCHAR(150) NOT NULL
+  name VARCHAR(150) NOT NULL
 );
-INSERT IGNORE INTO room_types (room_type_id, descr)
+INSERT IGNORE INTO room_types (room_type_id, name)
 VALUES(1, 'General room');
 
 CREATE TABLE if not exists treatments (
   treat_id SERIAL PRIMARY KEY,
-  descr VARCHAR(150) NOT NULL,
+  name VARCHAR(150) NOT NULL,
   room_type_id BIGINT UNSIGNED NOT NULL,
   price DECIMAL(18,2) NOT NULL,
   duration DECIMAL(18,2) NOT NULL,
   FOREIGN KEY (room_type_id) REFERENCES room_types(room_type_id)
 );
 TRUNCATE treatments;
-INSERT IGNORE INTO treatments (treat_id, descr, room_type_id, price, duration)
+INSERT IGNORE INTO treatments (treat_id, name, room_type_id, price, duration)
 VALUES(1, 'First appointment', 1, 40.00, 1.00),
 (2, 'Follow-up appointment', 1, 30.00, 0.30);
 
 CREATE TABLE if not exists rooms (
   room_id SERIAL PRIMARY KEY,
-  descr VARCHAR(80) NOT NULL,
+  name VARCHAR(80) NOT NULL,
   room_type_id BIGINT UNSIGNED NOT NULL,
   FOREIGN KEY (room_type_id) REFERENCES room_types(room_type_id)
 );
-INSERT IGNORE INTO rooms (room_id, descr, room_type_id)
+INSERT IGNORE INTO rooms (room_id, name, room_type_id)
 VALUES(1, 'Room 1', 1), (2, 'Room 2', 1);
 
 CREATE TABLE if not exists bookings (

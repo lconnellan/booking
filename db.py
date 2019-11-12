@@ -32,9 +32,27 @@ class Database:
                 column_type[col['Field']] = 'str'
             elif 'varchar' in col['Type']:
                 column_type[col['Field']] = 'str'
+            elif col['Key'] == 'MUL':
+                column_type[col['Field']] = 'foreign'
             else:
                 column_type[col['Field']] = 'num'
-        return result, column_type
+        self.cur.execute("USE information_schema")
+        self.cur.execute("SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME \
+                          FROM KEY_COLUMN_USAGE WHERE TABLE_NAME = '" + table + "'")
+        foreign_keys = self.cur.fetchall()
+        self.cur.execute("USE booking")
+        named_keys = {}
+        for key in foreign_keys:
+            if key['REFERENCED_TABLE_NAME'] != None:
+                rtable = key['REFERENCED_TABLE_NAME']
+                rcol = key['REFERENCED_COLUMN_NAME']
+                self.cur.execute("SELECT " + rtable + ".name, " + rtable + "." \
+                                 + rcol + " FROM " + rtable)
+                tmp = self.cur.fetchall()
+                named_keys[rcol] = {}
+                for entry in tmp:
+                    named_keys[rcol][entry[rcol]] = entry['name']
+        return result, column_type, named_keys
     def list_tables(self):
         self.cur.execute("SHOW TABLES")
         result = self.cur.fetchall()
@@ -88,11 +106,13 @@ def database():
 @admin_required
 def tables(table):
     db = Database()
-    res, col_type = db.list_table(table)
+    res = db.list_table(table)
     if request.method == 'POST':
         if 'add' in request.form:
             return redirect(url_for('tables_add', table=table))
         elif 'delete' in request.form:
+            # delete using the primary key (which is identified by 'auto')
+            col_type = res[1]
             auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
             try:
                 db.cur.execute("DELETE FROM " + table + " WHERE " + auto_field + \
@@ -103,7 +123,7 @@ def tables(table):
                          in the table depends upon it.'
                 return redirect(url_for('error', error=error))
             return redirect(url_for('tables', table=table))
-    return render_template('tables.html', result=res, col_type=col_type)
+    return render_template('tables.html', result=res[0], col_type=res[1], named_keys=res[2])
 
 @app.route('/error/<error>', methods=['GET', 'POST'])
 def error(error):
@@ -115,27 +135,32 @@ def error(error):
 @admin_required
 def tables_add(table):
     db = Database()
-    res, col_type = db.list_table(table)
+    res = db.list_table(table)
     if request.method == 'POST':
         if request.form['submit'] == 'yes':
             first = True
+            # compose a string of inputs to put into database
+            print(request.form)
             for fieldname, value in request.form.items():
                 if fieldname != 'submit':
-                    if col_type[fieldname[:-1]]:
+                    col_type = res[1]
+                    if col_type[fieldname] == 'str':
                         value = "'" + value + "'"
+                    # first entry doesn't need preceeding comma
                     if first:
-                        fieldnames = fieldname[:-1]
+                        fieldnames = fieldname
                         values = value
                         first = False
                     else:
-                        fieldnames += ', ' + fieldname[:-1]
+                        fieldnames += ', ' + fieldname
                         values += ', ' + value
+            print(("INSERT IGNORE INTO " + table + "(" + fieldnames \
+                           + ") VALUES(" + values + ");"))
             db.cur.execute("INSERT IGNORE INTO " + table + "(" + fieldnames \
                            + ") VALUES(" + values + ");")
             db.con.commit()
-            res = db.list_table(table)[0]
-            return redirect(url_for('tables', table=table, col_type=col_type))
-    return render_template('tables_add.html', result=res, col_type=col_type)
+            return redirect(url_for('tables', table=table))
+    return render_template('tables_add.html', result=res[0], col_type=res[1], named_keys=res[2])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

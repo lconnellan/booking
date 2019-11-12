@@ -25,27 +25,39 @@
   <table id="tables" style="width:100%"><tbody>
     {% if result %}
       <tr>
-        {% for category in result[0] %}
-          {% if col_type[category] != 'auto' %}
-            <th>{{ category }}</th>
+        {% for field in result[0] %}
+          {% if col_type[field] != 'auto' %}
+            <th>{{ field }}</th>
           {% endif %}
         {% endfor %}
       </tr>
       {% for row in result %}
-      <tr>
-        {% for category in row %}
-          {% if col_type[category] != 'auto' %}
-            <td>{{ row[category] }}</td>
-          {% endif %}
-        {% endfor %}
-      </tr>
+        <tr>
+          {% for field in row %}
+            {% if col_type[field] != 'auto' %}
+              {% if col_type[field] == 'foreign' %}
+                <td>{{ named_keys[field][row[field]] }} ({{ row[field] }})</td>
+              {% else %}
+                <td>{{ row[field] }}</td>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </tr>
       {% endfor %}
     {% endif %}
     <form method="POST">
       <tr>
-        {% for category in result[0] %}
-          {% if col_type[category] != 'auto' %}
-            <td><input type="text" name={{category}}/></td>
+        {% for field in result[0] %}
+          {% if col_type[field] != 'auto' %}
+            {% if col_type[field] == 'foreign' %}
+              <td><select name={{field}}>
+                {% for key, name in named_keys[field].items() %}
+                  <option value="{{key}}">{{ name }} ({{ key }})</option>
+                {% endfor %}
+              </select></td>
+            {% else %}
+              <td><input type="text" name={{field}}></td>
+            {% endif %}
           {% endif %}
         {% endfor %}
       </tr>
