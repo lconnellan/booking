@@ -1,13 +1,14 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import render_template, redirect, url_for, request, session
+from flask_mail import Message
 import pymysql
 import hashlib
 from functools import wraps
 from datetime import datetime, timedelta, date, time
 import ast
+import random
+import string
 
-app = Flask(__name__)
-
-app.secret_key = b'5d6d846f35538d4554a51a1d27bd11bb'
+from db import app, mail
 
 class Database:
     def __init__(self):
@@ -57,21 +58,21 @@ class Database:
         self.cur.execute("SHOW TABLES")
         result = self.cur.fetchall()
         return result
-    def authenticate(self, username_in, password_in):
-        """Hash password and check versus stored user/pass in db"""
+    def authenticate(self, email_in, password_in):
+        """Hash password and check versus stored email/pass in db"""
         m = hashlib.md5()
         m.update(bytes(password_in, encoding='utf-8'))
         password_in = m.hexdigest()
         # fetch password from db
-        self.cur.execute("SELECT password FROM users WHERE username = '" + username_in + "'")
+        self.cur.execute("SELECT password FROM users WHERE email = '" + email_in + "'")
         password = self.cur.fetchall()[0]['password']
         if password_in == password:
             print('Signed in.')
-            session['username'] = username_in
-            self.cur.execute("SELECT access_lvl FROM users WHERE username = '" + username_in + "'")
+            session['email'] = email_in
+            self.cur.execute("SELECT access_lvl FROM users WHERE email = '" + email_in + "'")
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
         else:
-            print('Username or password incorrect. Please try again.')
+            print('Email or password incorrect. Please try again.')
 
 def admin_required(func):
     @wraps(func)
@@ -168,9 +169,43 @@ def login():
     error = None
     db = Database()
     if request.method == 'POST':
-        db.authenticate(request.form['username'], request.form['password'])
-        return redirect(request.args.get('next') or url_for('index'))
+        if request.form['next'] == 'login':
+            db.authenticate(request.form['email'], request.form['password'])
+            return redirect(request.args.get('next') or url_for('index'))
+        if request.form['next'] == 'create':
+            return redirect(url_for('create_account', msg=None))
     return render_template('login.html', error=error)
+
+@app.route('/create_account', methods=['GET', 'POST'])
+@app.route('/create_account/<msg>', methods=['GET', 'POST'])
+def create_account(msg=None):
+    db = Database()
+    if request.method == 'POST':
+        if not request.form['password'] == request.form['password_confirm']:
+            error = 'Passwords do not match'
+            return redirect('create_account', msg=error)
+        else:
+            password = request.form['password']
+            email = request.form['email']
+            # generate hashed password
+            m = hashlib.md5()
+            m.update(bytes(email, encoding='utf-8'))
+            key = m.hexdigest()
+            # generate random url link
+            key = ''.join([random.choice(string.ascii_letters \
+                  + string.digits) for n in range(32)])
+            link = url_for('email_confirmation', key=key)
+            msg = Message("Please verify your email address", \
+                          sender=app.config.get('MAIL_USERNAME'), \
+                          recipients=[email])
+            msg.html = render_template('pass_confirm.html', link=link, username=username)
+            mail.send(msg)
+            return redirect(request.args.get('next') or url_for('index'))
+    return render_template('create_account.html', error=msg)
+
+@app.route('/email_confirmation/<key>', methods=['GET', 'POST'])
+def email_confirmation(key):
+    return render_template('create_account.html')
 
 @app.route('/treatments', methods=['GET', 'POST'])
 def treatments():
@@ -297,7 +332,6 @@ def booking():
         return redirect(url_for('practitioner_choice'))
 
     return render_template('booking.html', time_slots=time_slots)
-
 
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
 def practitioner_choice():

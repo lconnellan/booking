@@ -145,11 +145,11 @@ CALL avail_populate();
 
 CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,
-  username VARCHAR(80) NOT NULL,
+  email VARCHAR(150) NOT NULL,
   password VARCHAR(80) NOT NULL,
   access_lvl INT DEFAULT 0
 );
 
-INSERT IGNORE INTO users (user_id, username, password, access_lvl)
-VALUES(1, 'admin', MD5('admin'), 2),
-(2, 'user', MD5('user'), 0);
+INSERT IGNORE INTO users (user_id, email, password, access_lvl)
+VALUES(1, 'admin@gmail.com', MD5('admin'), 2),
+(2, 'user@gmail.com', MD5('user'), 0);

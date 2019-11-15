@@ -12,11 +12,12 @@
     <h1>Please login</h1>
     <br>
     <form action="" method="post">
-      <input type="text" placeholder="Username" name="username" value="{{
-        request.form.username }}">
-       <input type="password" placeholder="Password" name="password" value="{{
+      <input type="text" placeholder="Email" name="email" value="{{
+        request.form.email }}">
+       <br><input type="password" placeholder="Password" name="password" value="{{
         request.form.password }}">
-      <input class="btn btn-default" type="submit" value="Login">
+      <br><button type="submit" name='next' value="login"> Login </button>
+      <br><button type="submit" name='next' value="create"> Create an account</button>
     </form>
     {% if error %}
       <p class="error"><strong>Error:</strong> {{ error }}
