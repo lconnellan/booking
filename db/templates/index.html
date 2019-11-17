@@ -11,10 +11,10 @@
     <div class="topnav">
       <a class="active" href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('treatments') }}">Book a session</a>
-      {% if not 'username' in session %}
+      {% if not 'email' in session %}
         <a class="right" href="{{ url_for('login') }}">Login</a>
       {% endif %}
-      {% if session['username'] %}
+      {% if session['email'] %}
         {% if session['access_lvl'] == 2 %}
           <a href="{{ url_for('database') }}">Access Database</a>
         {% endif %}
@@ -23,9 +23,16 @@
     </div>
   </form>
   <h2>Home page</h2>
-  {% if message %}
-    {{ message }}
+  {% if msg %}
+    {{ msg }}
   {% endif %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 </body>
 
 </html>

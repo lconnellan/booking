@@ -20,8 +20,8 @@
         request.form.password_confirm }}">
       <br><input type="submit" value="Submit">
     </form>
-    {% if error %}
-      <p class="error"><strong>Error:</strong> {{ error }}
+    {% if msg %}
+      <p class="error"><strong>Error:</strong> {{ msg }}
     {% endif %}
   </div>
 </body>

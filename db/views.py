@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, session
+from flask import render_template, redirect, url_for, request, session, flash
 from flask_mail import Message
 import pymysql
 import hashlib
@@ -67,44 +67,56 @@ class Database:
         self.cur.execute("SELECT password FROM users WHERE email = '" + email_in + "'")
         password = self.cur.fetchall()[0]['password']
         if password_in == password:
-            print('Signed in.')
+            flash('Signed in.')
             session['email'] = email_in
             self.cur.execute("SELECT access_lvl FROM users WHERE email = '" + email_in + "'")
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
         else:
-            print('Email or password incorrect. Please try again.')
+            flash('Email or password incorrect. Please try again.')
 
-def admin_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not 'access_lvl' in session:
-            print('Login is required to continue')
-            return redirect(url_for('login', next=request.endpoint))
-        if session['access_lvl'] != 2:
-            print('User access level insufficient')
-            return redirect(url_for('login', next=request.endpoint))
-        return func(*args, **kwargs)
-    return wrapper
+def auth_required(level=2):
+    def callable(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not 'access_lvl' in session:
+                session['error'] = 'Login is required to continue.'
+                return redirect(url_for('login', next=request.endpoint))
+            elif session['access_lvl'] == -1:
+                session['error'] = 'Account registration still needs to be \
+                                    completed. Please check your emails.'
+                return redirect(url_for('index', next=request.endpoint))
+            elif session['access_lvl'] != level:
+                session['error'] = 'User access level insufficient.'
+                return redirect(url_for('login', next=request.endpoint))
+            return func(*args, **kwargs)
+        return wrapper
+    return callable
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    msg = None
     if request.method == 'POST':
         if request.form['category'] == "logout":
-            session.pop('username', None)
+            session.pop('email', None)
             session.pop('access_lvl', None)
             msg = "You have logged out."
-            return render_template('index.html', message=msg, session=session)
-    return render_template('index.html', session=session)
+    return render_template('index.html', msg=msg, session=session)
 
-@app.route('/database')
-@admin_required
+@app.route('/database', methods=['GET', 'POST'])
+@auth_required(level=2)
 def database():
     db = Database()
     res = db.list_tables()
+    if request.method == 'POST':
+        if request.form['category'] == "logout":
+            session.pop('email', None)
+            session.pop('access_lvl', None)
+            flash("You have logged out.")
+            return redirect(url_for('index'))
     return render_template('database.html', result=res)
 
 @app.route('/database/<table>', methods=['GET', 'POST'])
-@admin_required
+@auth_required(level=2)
 def tables(table):
     db = Database()
     res = db.list_table(table)
@@ -133,7 +145,7 @@ def error(error):
     return render_template('error.html', error=error)
 
 @app.route('/database/<table>_add', methods=['GET', 'POST'])
-@admin_required
+@auth_required(level=2)
 def tables_add(table):
     db = Database()
     res = db.list_table(table)
@@ -155,8 +167,6 @@ def tables_add(table):
                     else:
                         fieldnames += ', ' + fieldname
                         values += ', ' + value
-            print(("INSERT IGNORE INTO " + table + "(" + fieldnames \
-                           + ") VALUES(" + values + ");"))
             db.cur.execute("INSERT IGNORE INTO " + table + "(" + fieldnames \
                            + ") VALUES(" + values + ");")
             db.con.commit()
@@ -165,20 +175,27 @@ def tables_add(table):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Route for handling the login page logic"""
-    error = None
+    if 'error' in session:
+        msg = session['error']
+        session.pop('error', None)
+    else:
+        msg = None
     db = Database()
     if request.method == 'POST':
         if request.form['next'] == 'login':
             db.authenticate(request.form['email'], request.form['password'])
             return redirect(request.args.get('next') or url_for('index'))
         if request.form['next'] == 'create':
-            return redirect(url_for('create_account', msg=None))
-    return render_template('login.html', error=error)
+            return redirect(url_for('create_account'))
+    return render_template('login.html', msg=msg)
 
 @app.route('/create_account', methods=['GET', 'POST'])
-@app.route('/create_account/<msg>', methods=['GET', 'POST'])
-def create_account(msg=None):
+def create_account():
+    if 'error' in session:
+        msg = session['error']
+        session.pop('error', None)
+    else:
+        msg = None
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
@@ -187,37 +204,53 @@ def create_account(msg=None):
         else:
             password = request.form['password']
             email = request.form['email']
-            # generate hashed password
+            db.cur.execute("SELECT email FROM users")
+            emails = [emails['email'] for emails in db.cur.fetchall()]
+            if email in emails:
+                error = 'Sorry but that email is already registered. Please \
+                         login or reset your password if necessary.'
+                session['error'] = error
+                return redirect(url_for('create_account'))
+            #generate hashed password
             m = hashlib.md5()
-            m.update(bytes(email, encoding='utf-8'))
-            key = m.hexdigest()
-            # generate random url link
+            m.update(bytes(password, encoding='utf-8'))
+            password = m.hexdigest()
+            # generate random auth key
             key = ''.join([random.choice(string.ascii_letters \
                   + string.digits) for n in range(32)])
-            link = url_for('email_confirmation', key=key)
+            # insert new user with key into db
+            db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, auth_key) \
+                            VALUES('" + email + "', '" + password + "', -1, '" + key + "')")
+            db.con.commit()
+            # send email with confirmation link
+            link = 'http://192.168.251.131:5000/email_confirmation/' + key
             msg = Message("Please verify your email address", \
                           sender=app.config.get('MAIL_USERNAME'), \
                           recipients=[email])
-            msg.html = render_template('pass_confirm.html', link=link, username=username)
+            msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
             return redirect(request.args.get('next') or url_for('index'))
-    return render_template('create_account.html', error=msg)
+    return render_template('create_account.html', msg=msg)
 
 @app.route('/email_confirmation/<key>', methods=['GET', 'POST'])
 def email_confirmation(key):
-    return render_template('create_account.html')
+    db = Database()
+    db.cur.execute("UPDATE users SET access_lvl = 1, auth_key = NULL WHERE \
+                    auth_key = '" + key + "'")
+    db.con.commit()
+    return render_template('email_confirmation.html')
 
 @app.route('/treatments', methods=['GET', 'POST'])
 def treatments():
     db = Database()
     # fetch list of treatments
-    db.cur.execute("SELECT descr FROM treatments")
-    treatments = [entry['descr'] for entry in db.cur.fetchall()]
+    db.cur.execute("SELECT name FROM treatments")
+    treatments = [entry['name'] for entry in db.cur.fetchall()]
     # create treatment links
     if request.method == 'POST':
         session['treatment'] = request.form['type']
         db.cur.execute('SELECT duration, price FROM treatments where \
-                       descr = "' + session['treatment'] + '"')
+                       name = "' + session['treatment'] + '"')
         res = [[entry['duration'], entry['price']] for entry in db.cur.fetchall()][0]
         session['duration'] = str(res[0])
         session['price'] = str(res[1])
@@ -324,9 +357,9 @@ def booking():
         # fetch list of practitioners
         pracs = []
         for prac_id in res[1]:
-            db.cur.execute("SELECT first_name, surname FROM practitioners \
+            db.cur.execute("SELECT name, surname FROM practitioners \
                            WHERE prac_id = " + str(prac_id))
-            pracs.append([[entry['first_name'] + ' ' + entry['surname'] \
+            pracs.append([[entry['name'] + ' ' + entry['surname'] \
                          for entry in db.cur.fetchall()][0], prac_id])
         session['pracs'] = pracs
         return redirect(url_for('practitioner_choice'))
@@ -343,6 +376,7 @@ def practitioner_choice():
     return render_template('practitioner_choice.html', pracs=session['pracs'])
 
 @app.route('/confirmation', methods=['GET', 'POST'])
+@auth_required(level=0)
 def confirmation():
     if request.method == 'POST':
         if request.form['answer'] == "proceed":
@@ -352,6 +386,7 @@ def confirmation():
     return render_template('confirmation.html', session=session)
 
 @app.route('/completed', methods=['GET', 'POST'])
+@auth_required(level=0)
 def completed():
     if request.method == 'POST':
         db = Database()

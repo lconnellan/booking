@@ -19,9 +19,16 @@
       <br><button type="submit" name='next' value="login"> Login </button>
       <br><button type="submit" name='next' value="create"> Create an account</button>
     </form>
-    {% if error %}
-      <p class="error"><strong>Error:</strong> {{ error }}
+    {% if msg %}
+      <p class="error"><strong>Error:</strong> {{ msg }}<br>
     {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
   </div>
 </body>
 

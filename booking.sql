@@ -147,7 +147,8 @@ CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,
   email VARCHAR(150) NOT NULL,
   password VARCHAR(80) NOT NULL,
-  access_lvl INT DEFAULT 0
+  access_lvl INT DEFAULT 0,
+  auth_key VARCHAR(36)
 );
 
 INSERT IGNORE INTO users (user_id, email, password, access_lvl)
