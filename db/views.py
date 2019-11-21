@@ -71,6 +71,8 @@ class Database:
             session['email'] = email_in
             self.cur.execute("SELECT access_lvl FROM users WHERE email = '" + email_in + "'")
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
+            self.cur.execute("SELECT client_id FROM users WHERE email = '" + email_in + "'")
+            session['client_id'] = self.cur.fetchall()[0]['client_id']
         else:
             flash('Email or password incorrect. Please try again.')
 
@@ -85,7 +87,7 @@ def auth_required(level=2):
                 session['error'] = 'Account registration still needs to be \
                                     completed. Please check your emails.'
                 return redirect(url_for('index', next=request.endpoint))
-            elif session['access_lvl'] != level:
+            elif session['access_lvl'] < level:
                 session['error'] = 'User access level insufficient.'
                 return redirect(url_for('login', next=request.endpoint))
             return func(*args, **kwargs)
@@ -153,7 +155,6 @@ def tables_add(table):
         if request.form['submit'] == 'yes':
             first = True
             # compose a string of inputs to put into database
-            print(request.form)
             for fieldname, value in request.form.items():
                 if fieldname != 'submit':
                     col_type = res[1]
@@ -200,7 +201,8 @@ def create_account():
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
             error = 'Passwords do not match'
-            return redirect('create_account', msg=error)
+            session['error'] = error
+            return redirect(url_for('create_account'))
         else:
             password = request.form['password']
             email = request.form['email']
@@ -218,9 +220,25 @@ def create_account():
             # generate random auth key
             key = ''.join([random.choice(string.ascii_letters \
                   + string.digits) for n in range(32)])
-            # insert new user with key into db
-            db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, auth_key) \
-                            VALUES('" + email + "', '" + password + "', -1, '" + key + "')")
+            forms = request.form.copy()
+            for f in forms:
+                if forms[f] == '':
+                    forms[f] = 'NULL'
+            # insert new details into db
+            db.cur.execute("INSERT IGNORE INTO clients (name, surname, phone_1, phone_2, \
+                           address_1, address_2, address_3, city, county, postcode) \
+                           VALUES('" + forms['name'] + "', '" + forms['surname'] \
+                           + "', '" + forms['phone_1'] + "', '" + forms['phone_2'] \
+                           + "', '" + forms['address_1'] + "', '" + forms['address_2'] \
+                           + "', '" + forms['address_3'] + "', '" + forms['city'] \
+                           + "', '" + forms['county'] + "', '" + forms['postcode'] + "')")
+            db.con.commit()
+            db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
+            client_id = db.cur.fetchall()[0]['client_id']
+            db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, auth_key, \
+                            client_id, prac_id) \
+                            VALUES('" + email + "', '" + password + "', -1, '" + key + "', " +
+                            str(client_id) + ", NULL)")
             db.con.commit()
             # send email with confirmation link
             link = 'http://192.168.251.131:5000/email_confirmation/' + key
@@ -235,7 +253,7 @@ def create_account():
 @app.route('/email_confirmation/<key>', methods=['GET', 'POST'])
 def email_confirmation(key):
     db = Database()
-    db.cur.execute("UPDATE users SET access_lvl = 1, auth_key = NULL WHERE \
+    db.cur.execute("UPDATE users SET access_lvl = 0, auth_key = NULL WHERE \
                     auth_key = '" + key + "'")
     db.con.commit()
     return render_template('email_confirmation.html')
@@ -390,7 +408,7 @@ def confirmation():
 def completed():
     if request.method == 'POST':
         db = Database()
-        client_id = '1' # needs to be set up
+        client_id = session['client_id'] # needs to be set up
         room_id = session['prac_id'] # assumed each prac has own room for now
         notes = 'NULL' # needs to be set up
         db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \

@@ -6,7 +6,6 @@ CREATE TABLE if not exists clients (
   surname VARCHAR(80) NOT NULL,
   phone_1 VARCHAR(25) NOT NULL,
   phone_2 VARCHAR(25),
-  email VARCHAR(100),
   address_1 VARCHAR(150) NOT NULL,
   address_2 VARCHAR(150),
   address_3 VARCHAR(150),
@@ -14,20 +13,19 @@ CREATE TABLE if not exists clients (
   county VARCHAR(50),
   postcode VARCHAR(10) NOT NULL
 );
-INSERT IGNORE INTO clients (client_id, name, surname, phone_1, phone_2, email, address_1, address_2, address_3, city, county, postcode)
-VALUES(1, 'John', 'Doe', '07923424294', NULL, 'j.doe@gmail.com', '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
-(2, 'Alice', 'Smith', '03835734709', '380476498344', 'a.smith@hotmail.co.uk', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
+INSERT IGNORE INTO clients (client_id, name, surname, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
+VALUES(1, 'John', 'Doe', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
+(2, 'Alice', 'Smith', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
   name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
-  phone VARCHAR(25) NOT NULL,
-  email VARCHAR(100) NOT NULL
+  phone VARCHAR(25) NOT NULL
 );
-INSERT IGNORE INTO practitioners (prac_id, name, surname, phone, email)
-VALUES(1, 'Wesley', 'Connellan', '030587598479', 'wesley.connellan@gmail.com'),
-(2, 'Ellie', 'Gorham', '0338236893462', 'e.gorham@gmail.com');
+INSERT IGNORE INTO practitioners (prac_id, name, surname, phone)
+VALUES(1, 'Wesley', 'Connellan', '030587598479'),
+(2, 'Ellie', 'Gorham', '0338236893462');
 
 CREATE TABLE if not exists room_types (
   room_type_id SERIAL PRIMARY KEY,
@@ -148,9 +146,13 @@ CREATE TABLE if not exists users (
   email VARCHAR(150) NOT NULL,
   password VARCHAR(80) NOT NULL,
   access_lvl INT DEFAULT 0,
-  auth_key VARCHAR(36)
+  auth_key VARCHAR(36),
+  client_id BIGINT UNSIGNED,
+  prac_id BIGINT UNSIGNED,
+  FOREIGN KEY (client_id) REFERENCES clients(client_id),
+  FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
 );
 
-INSERT IGNORE INTO users (user_id, email, password, access_lvl)
-VALUES(1, 'admin@gmail.com', MD5('admin'), 2),
-(2, 'user@gmail.com', MD5('user'), 0);
+INSERT IGNORE INTO users (user_id, email, password, access_lvl, client_id, prac_id)
+VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1),
+(2, 'john.doe@gmail.com', MD5('user'), 0, 1, NULL);
