@@ -96,12 +96,14 @@ def auth_required(level=2):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    msg = None
+    if 'msg' in session:
+        msg = session['msg']
+        session.pop('msg', None)
     if request.method == 'POST':
         if request.form['category'] == "logout":
             session.pop('email', None)
             session.pop('access_lvl', None)
-            msg = "You have logged out."
+            session['msg'] = "You have logged out."
     return render_template('index.html', msg=msg, session=session)
 
 @app.route('/database', methods=['GET', 'POST'])
@@ -224,14 +226,16 @@ def create_account():
             for f in forms:
                 if forms[f] == '':
                     forms[f] = 'NULL'
+                elif forms[f] != 'submit':
+                    forms[f] = "'" + forms[f] + "'"
             # insert new details into db
             db.cur.execute("INSERT IGNORE INTO clients (name, surname, phone_1, phone_2, \
                            address_1, address_2, address_3, city, county, postcode) \
-                           VALUES('" + forms['name'] + "', '" + forms['surname'] \
-                           + "', '" + forms['phone_1'] + "', '" + forms['phone_2'] \
-                           + "', '" + forms['address_1'] + "', '" + forms['address_2'] \
-                           + "', '" + forms['address_3'] + "', '" + forms['city'] \
-                           + "', '" + forms['county'] + "', '" + forms['postcode'] + "')")
+                           VALUES(" + forms['name'] + ", " + forms['surname'] \
+                           + ", " + forms['phone_1'] + ", " + forms['phone_2'] \
+                           + ", " + forms['address_1'] + ", " + forms['address_2'] \
+                           + ", " + forms['address_3'] + ", " + forms['city'] \
+                           + ", " + forms['county'] + ", " + forms['postcode'] + ")")
             db.con.commit()
             db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
             client_id = db.cur.fetchall()[0]['client_id']
@@ -247,6 +251,7 @@ def create_account():
                           recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
+            session['msg'] = "An email has been sent to " + email + "."
             return redirect(request.args.get('next') or url_for('index'))
     return render_template('create_account.html', msg=msg)
 
@@ -408,7 +413,7 @@ def confirmation():
 def completed():
     if request.method == 'POST':
         db = Database()
-        client_id = session['client_id'] # needs to be set up
+        client_id = session['client_id']
         room_id = session['prac_id'] # assumed each prac has own room for now
         notes = 'NULL' # needs to be set up
         db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \
