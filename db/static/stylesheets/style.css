@@ -21,30 +21,40 @@ a:hover {
   color: black;
 }
 
-/* Add a black background color to the top navigation */
+/* Add a top navigation bar */
 .topnav {
-  background-color: #333;
+  color: #0065a3;
+  font-size: 50px;
+  font-weight: 400;
+  font-family: helvetica;
   overflow: hidden;
-}
-
-.topnav button {
-  background-color: #262626;
-  float: left;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 17px;
+  border-bottom-style: solid;
+  border-color: grey;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  margin-right: 40px;
+  margin-left: 40px;
+  padding-bottom: 30px;
 }
 
 .topnav a {
-  background-color: #262626;
-  float: left;
-  color: #f2f2f2;
+  float: right;
+  background-color: #ffffff;
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
-  font-size: 17px;
+  font-size: 14px;
+  font-weight: normal;
+}
+.topnav button {
+  float: right;
+  background-color: #ffffff;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: normal;
+  border-style: none;
 }
 
 /* Change the color of links on hover */
@@ -52,19 +62,13 @@ a:hover {
   background-color: #ddd;
   color: black;
 }
-
-/* Links on right of bar */
-.topnav a.right {
-  float: right;
-}
-
-.topnav button.right {
-  position: absolute;
-  right: 0px;
+.topnav button:hover {
+  background-color: #ddd;
+  color: black;
 }
 
 /* Add a color to the active/current link */
 .topnav a.active {
-  background-color: #4CAF50;
+  background-color: #0065a3;
   color: white;
 }

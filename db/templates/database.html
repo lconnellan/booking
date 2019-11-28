@@ -9,20 +9,21 @@
 <body>
   <form method="POST">
     <div class="topnav">
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('treatments') }}">Book a session</a>
+      FRAMEWORK
       {% if not 'email' in session %}
-        <a class="right" href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('login') }}">Login</a>
       {% endif %}
       {% if session['email'] %}
+        <button class="right" type="submit" name="category" value="logout">Log out</button>
         {% if session['access_lvl'] == 2 %}
           <a class="active" href="{{ url_for('database') }}">Access Database</a>
         {% endif %}
-        <button class="right" type="submit" name="category" value="logout">Log out</button>
       {% endif %}
+      <a href="{{ url_for('treatments') }}">Book a session</a>
+      <a href="{{ url_for('index') }}">Home</a> <br>
+      LIVINGSTON <br>
     </div>
   </form>
-  <h2>Home page</h2>
   {% if message %}
     {{ message }}
   {% endif %}

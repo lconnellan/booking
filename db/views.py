@@ -99,6 +99,8 @@ def index():
     if 'msg' in session:
         msg = session['msg']
         session.pop('msg', None)
+    else:
+        msg = None
     if request.method == 'POST':
         if request.form['category'] == "logout":
             session.pop('email', None)
