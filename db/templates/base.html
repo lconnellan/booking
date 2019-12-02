@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+</head>
+
+<body>
+  <form method="POST">
+    <div class="topnav">
+      FRAMEWORK LIVINGSTON
+      <a href="{{ url_for('index') }}">Home</a> <br>
+      <a href="{{ url_for('treatments') }}">About</a>
+      <div class="dropdown">
+        <a href="{{ url_for('treatments') }}">Appointments</a>
+        <div class="dropdown-content">
+          <a href="{{ url_for('treatments') }}">Book a session</a>
+          <a href="{{ url_for('create_account') }}">Contact</a>
+          <a href="{{ url_for('create_account') }}">Prices</a>
+          <a href="{{ url_for('create_account') }}">What to Expect</a>
+        </div>
+      </div>
+      {% if session['email'] %}
+        {% if session['access_lvl'] == 2 %}
+          <a href="{{ url_for('database') }}">Database</a>
+        {% endif %}
+        <button type="submit" name="category" value="logout">Log out</button>
+      {% endif %}
+      {% if not 'email' in session %}
+        <a href="{{ url_for('login') }}">Log in</a>
+      {% endif %}
+    </div>
+  </form>
+  {% if msg %}
+    {{ msg }}
+  {% endif %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+{% block main %}{% endblock %}
+</body>
+
+</html>
