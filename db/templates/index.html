@@ -9,19 +9,27 @@
 <body>
   <form method="POST">
     <div class="topnav">
-      FRAMEWORK
-      {% if not 'email' in session %}
-        <a href="{{ url_for('login') }}">Login</a>
-      {% endif %}
-      {% if session['email'] %}
-        <button class="right" type="submit" name="category" value="logout">Log out</button>
-        {% if session['access_lvl'] == 2 %}
-          <a href="{{ url_for('database') }}">Access Database</a>
-        {% endif %}
-      {% endif %}
-      <a href="{{ url_for('treatments') }}">Book a session</a>
+      FRAMEWORK LIVINGSTON
       <a class="active" href="{{ url_for('index') }}">Home</a> <br>
-      LIVINGSTON <br>
+      <a href="{{ url_for('treatments') }}">About</a>
+      <div class="dropdown">
+        <a href="{{ url_for('treatments') }}">Appointments</a>
+        <div class="dropdown-content">
+          <a href="{{ url_for('treatments') }}">Book a session</a>
+          <a href="{{ url_for('create_account') }}">Contact</a>
+          <a href="{{ url_for('create_account') }}">Prices</a>
+          <a href="{{ url_for('create_account') }}">What to Expect</a>
+        </div>
+      </div>
+      {% if session['email'] %}
+        {% if session['access_lvl'] == 2 %}
+          <a href="{{ url_for('database') }}">Database</a>
+        {% endif %}
+        <button type="submit" name="category" value="logout">Log out</button>
+      {% endif %}
+      {% if not 'email' in session %}
+        <a href="{{ url_for('login') }}">Log in</a>
+      {% endif %}
     </div>
   </form>
   {% if msg %}
@@ -45,7 +53,7 @@
 
 <div class="mySlides fade">
   <div class="numbertext">2 / 3</div>
-  <img src="../static/pics/IMG_0298.jpg" style="width:100%">
+  <img src="../static/pics/combined.jpg" style="width:100%">
   <div class="text"></div>
 </div>
 
@@ -65,6 +73,14 @@
   <span class="dot" onclick="currentSlide(1)"></span>
   <span class="dot" onclick="currentSlide(2)"></span>
   <span class="dot" onclick="currentSlide(3)"></span>
+</div>
+
+<div class="main">
+Framework Livingston is a friendly osteopathy clinic, based in West-Lothian that treats a wide range of musculoskeletal complaints, from neck pain to ankle pain and everything in between. The clinic was first established in 2000, and is highly regarded in the local area. <br> <br>
+
+Everyone can benefit from osteopathy, from children to seniors, athletes and desk workers. Osteopathy uses the core principal that the well-being of an individual relies on the way that bones, muscles, ligaments and connective tissue work with each other. Osteopathy uses a non-invasive, holistic approach to identify problematic areas in a persons body and uses a combination hands on techniques to restore function and improve the overall health. <br> <br>
+
+Framework Livingston is under new ownership, but we still work very closely with Framework Clinics. Don’t worry, Andrew is still available at his usual times on Mondays and Wednesdays. <br> <br>
 </div>
 
 <script>

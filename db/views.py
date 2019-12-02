@@ -102,7 +102,9 @@ def index():
     else:
         msg = None
     if request.method == 'POST':
-        if request.form['category'] == "logout":
+        if request.form['category'] == "login":
+            return redirect(url_for('login'))
+        elif request.form['category'] == "logout":
             session.pop('email', None)
             session.pop('access_lvl', None)
             session['msg'] = "You have logged out."
