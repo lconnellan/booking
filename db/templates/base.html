@@ -3,7 +3,7 @@
 
 <head>
   <title>{% block title %}{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
@@ -32,16 +32,18 @@
       {% endif %}
     </div>
   </form>
-  {% if msg %}
-    {{ msg }}
-  {% endif %}
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      {% for message in messages %}
-        {{ message }}
-      {% endfor %}
+  <div class="msg-box">
+    {% if msg %}
+      {{ msg }}
     {% endif %}
-  {% endwith %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
 {% block main %}{% endblock %}
 </body>

@@ -1,16 +1,9 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Error{% endblock %}
 
-<head>
-  <title>Error</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
-</head>
-
-<body>
+{% block main %}
   <h1>{{error}}</h1>
   <form method="POST">
     <button type="submit">Return to home (or click back on browser)</button>
   </form>
-</body>
-
-</html>
+{% endblock %}

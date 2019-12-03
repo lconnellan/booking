@@ -1,26 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Tables{% endblock %}
 
-<head>
-  <title>Tables</title>
-  <style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 100%;
-    }
-    td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
-    tr:nth-child(even) {
-        background-color: #dddddd;
-    }
-  </style>
-</head>
-
-<body>
+{% block main %}
   <meta charset="UTF-8">
   <table id="tables" style="width:100%"><tbody>
     {% if result %}
@@ -64,6 +45,4 @@
       <button type="submit" name="submit" value="yes"> Submit </button>
     </form>
   </tbody></table>
-</body>
-
-<html>
+{% endblock %}

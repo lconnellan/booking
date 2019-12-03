@@ -1,59 +1,38 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Login page{% endblock %}
 
-<head>
-  <title>Tables</title>
-  <style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 100%;
-    }
-    td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
-    tr:nth-child(even) {
-        background-color: #dddddd;
-    }
-  </style>
-</head>
-
-<body>
+{% block main %}
   <meta charset="UTF-8">
   <form method="POST">
-  <table id="tables" style="width:100%"><tbody>
-    {% if result %}
-      <tr>
-        {% for field in result[0] %}
-          {% if col_type[field] != 'auto' %}
-            <th>{{ field }}</th>
-          {% endif %}
-        {% endfor %}
-      </tr>
-      {% for row in result %}
+    <table id="tables"><tbody>
+      {% if result %}
         <tr>
-          {% for field in row %}
+          {% for field in result[0] %}
             {% if col_type[field] != 'auto' %}
-              {% if col_type[field] == 'foreign' %}
-                <td>{{ named_keys[field][row[field]] }} ({{ row[field] }})</td>
-              {% else %}
-                <td>{{ row[field] }}</td>
-              {% endif %}
-            {% endif %}
-          {% endfor %}
-          {% for field in row %}
-            {% if col_type[field] == 'auto' %}
-              <td><button type="submit" name="delete" value="{{row[field]}}"> Delete </button></td>
+              <th>{{ field }}</th>
             {% endif %}
           {% endfor %}
         </tr>
-      {% endfor %}
-    {% endif %}
-  </tbody></table>
+        {% for row in result %}
+          <tr>
+            {% for field in row %}
+              {% if col_type[field] != 'auto' %}
+                {% if col_type[field] == 'foreign' %}
+                  <td>{{ named_keys[field][row[field]] }} ({{ row[field] }})</td>
+                {% else %}
+                  <td>{{ row[field] }}</td>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% for field in row %}
+              {% if col_type[field] == 'auto' %}
+                <td><button type="submit" name="delete" value="{{row[field]}}"> Delete </button></td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% endif %}
+    </tbody></table>
     <button type="submit" name="add" value="yes"> Add new entry </button>
   </form>
-</body>
-
-<html>
+{% endblock %}

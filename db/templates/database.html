@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Database{% endblock %}
+
 {% block main %}
-  <div class="main">
+  <div class="mainflex">
     {% for table in result %}
       <a href="{{ url_for('tables', table=table['Tables_in_booking']) }}">{{table['Tables_in_booking']}}</a>
     {% endfor %}

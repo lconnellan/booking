@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Email Confirmed{% endblock %}
 
-<body>
+{% block main %}
   Thank you for confirming your registration. Your account has been activated.
   <a href="{{ url_for('index') }}">Return to index</a>
-</body>
-
-</html>
+{% endblock %}

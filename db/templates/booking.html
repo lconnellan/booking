@@ -1,45 +1,26 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Time slot booking{% endblock %}
 
-<head>
-<title>Time slot booking</title>
-<style>
-table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-}
-td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-}
-tr:nth-child(even) {
-    background-color: #dddddd;
-}
-</style>
-</head>
-
-<body>
-<h1>Please choose a time slot.</h1>
-<meta charset="UTF-8">
-<table id="booking" style="width:100%"><tbody>
-  <form method="POST">
-  {% if time_slots %}
-    {% for i in range (0, 3) %}
-      <tr>
-      {% for j in range (0, 6) %}
-        {% if time_slots[6*i + j][1] == [] %}
-          <td> {{ time_slots[6*i + j][0] }} </td>
-        {% else %}
-          <td> <button type="submit" name="time_slot" value="{{time_slots[6*i + j]}}"> {{ time_slots[6*i + j][0] }} </button> </td>
-        {% endif %}
-      {% endfor %}
-      </tr>
-    {% endfor %}
-  {% endif %}
-  </form>
-</tbody></table>
-</body>
-
-</html>
+{% block main %}
+  <div class="main">
+    <h1>Please choose a time slot.</h1>
+    <meta charset="UTF-8">
+    <table id="booking" style="width:100%"><tbody>
+      <form method="POST">
+      {% if time_slots %}
+        {% for i in range (0, 3) %}
+          <tr>
+          {% for j in range (0, 6) %}
+            {% if time_slots[6*i + j][1] == [] %}
+              <td> {{ time_slots[6*i + j][0] }} </td>
+            {% else %}
+              <td> <button type="submit" name="time_slot" value="{{time_slots[6*i + j]}}"> {{ time_slots[6*i + j][0] }} </button> </td>
+            {% endif %}
+          {% endfor %}
+          </tr>
+        {% endfor %}
+      {% endif %}
+      </form>
+    </tbody></table>
+  </div>
+{% endblock %}

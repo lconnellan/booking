@@ -1,14 +1,14 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Session Confirmation{% endblock %}
 
-<body>
-  {% if session %}
-    You are booking a {{session['treatment'].lower()}} on {{session['date']}} from {{session['time_slot']}} to {{session['end']}} with {{session['prac']}}. Would you like to proceed?
-  {% endif %}
-  <form method="POST">
-    <button type="submit" name="answer" value="proceed">Proceed</button>
-    <button type="submit" name="answer" value="cancel">Cancel</button>
-  </form>
-</body>
-
-</html>
+{% block main %}
+  <div class="main">
+    {% if session %}
+      You are booking a {{session['treatment'].lower()}} on {{session['date']}} from {{session['time_slot']}} to {{session['end']}} with {{session['prac']}}. Would you like to proceed?
+    {% endif %}
+    <form method="POST">
+      <button type="submit" name="answer" value="proceed">Proceed</button>
+      <button type="submit" name="answer" value="cancel">Cancel</button>
+    </form>
+  </div>
+{% endblock %}

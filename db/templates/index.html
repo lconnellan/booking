@@ -2,72 +2,72 @@
 {% block title %}Framework Livingston{% endblock %}
 
 {% block main %}
-<div class="slideshow-container">
+  <div class="slideshow-container">
 
-<div class="mySlides fade">
-  <div class="numbertext">1 / 3</div>
-  <img src="../static/pics/DSC_0118.jpg" style="width:100%">
-  <div class="text"></div>
-</div>
+  <div class="mySlides fade">
+    <div class="numbertext">1 / 3</div>
+    <img src="../static/pics/DSC_0118.jpg" style="width:100%">
+    <div class="text"></div>
+  </div>
 
-<div class="mySlides fade">
-  <div class="numbertext">2 / 3</div>
-  <img src="../static/pics/combined.jpg" style="width:100%">
-  <div class="text"></div>
-</div>
+  <div class="mySlides fade">
+    <div class="numbertext">2 / 3</div>
+    <img src="../static/pics/combined.jpg" style="width:100%">
+    <div class="text"></div>
+  </div>
 
-<div class="mySlides fade">
-  <div class="numbertext">3 / 3</div>
-  <img src="../static/pics/DSC_0152.jpg" style="width:100%">
-  <div class="text"></div>
-</div>
+  <div class="mySlides fade">
+    <div class="numbertext">3 / 3</div>
+    <img src="../static/pics/DSC_0152.jpg" style="width:100%">
+    <div class="text"></div>
+  </div>
 
-<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-<a class="next" onclick="plusSlides(1)">&#10095;</a>
+  <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+  <a class="next" onclick="plusSlides(1)">&#10095;</a>
 
-</div>
-<br>
+  </div>
+  <br>
 
-<div style="text-align:center">
-  <span class="dot" onclick="currentSlide(1)"></span>
-  <span class="dot" onclick="currentSlide(2)"></span>
-  <span class="dot" onclick="currentSlide(3)"></span>
-</div>
+  <div style="text-align:center">
+    <span class="dot" onclick="currentSlide(1)"></span>
+    <span class="dot" onclick="currentSlide(2)"></span>
+    <span class="dot" onclick="currentSlide(3)"></span>
+  </div>
 
-<div class="main">
-Framework Livingston is a friendly osteopathy clinic, based in West-Lothian that treats a wide range of musculoskeletal complaints, from neck pain to ankle pain and everything in between. The clinic was first established in 2000, and is highly regarded in the local area. <br> <br>
+  <div class="main">
+  Framework Livingston is a friendly osteopathy clinic, based in West-Lothian that treats a wide range of musculoskeletal complaints, from neck pain to ankle pain and everything in between. The clinic was first established in 2000, and is highly regarded in the local area. <br> <br>
 
-Everyone can benefit from osteopathy, from children to seniors, athletes and desk workers. Osteopathy uses the core principal that the well-being of an individual relies on the way that bones, muscles, ligaments and connective tissue work with each other. Osteopathy uses a non-invasive, holistic approach to identify problematic areas in a persons body and uses a combination hands on techniques to restore function and improve the overall health. <br> <br>
+  Everyone can benefit from osteopathy, from children to seniors, athletes and desk workers. Osteopathy uses the core principal that the well-being of an individual relies on the way that bones, muscles, ligaments and connective tissue work with each other. Osteopathy uses a non-invasive, holistic approach to identify problematic areas in a persons body and uses a combination hands on techniques to restore function and improve the overall health. <br> <br>
 
-Framework Livingston is under new ownership, but we still work very closely with Framework Clinics. Don’t worry, Andrew is still available at his usual times on Mondays and Wednesdays. <br> <br>
-</div>
+  Framework Livingston is under new ownership, but we still work very closely with Framework Clinics. Don’t worry, Andrew is still available at his usual times on Mondays and Wednesdays. <br> <br>
+  </div>
 
-<script>
-var slideIndex = 1;
-showSlides(slideIndex);
+  <script>
+  var slideIndex = 1;
+  showSlides(slideIndex);
 
-function plusSlides(n) {
-  showSlides(slideIndex += n);
-}
-
-function currentSlide(n) {
-  showSlides(slideIndex = n);
-}
-
-function showSlides(n) {
-  var i;
-  var slides = document.getElementsByClassName("mySlides");
-  var dots = document.getElementsByClassName("dot");
-  if (n > slides.length) {slideIndex = 1}
-  if (n < 1) {slideIndex = slides.length}
-  for (i = 0; i < slides.length; i++) {
-      slides[i].style.display = "none";
+  function plusSlides(n) {
+    showSlides(slideIndex += n);
   }
-  for (i = 0; i < dots.length; i++) {
-      dots[i].className = dots[i].className.replace(" active", "");
+
+  function currentSlide(n) {
+    showSlides(slideIndex = n);
   }
-  slides[slideIndex-1].style.display = "block";
-  dots[slideIndex-1].className += " active";
-}
-</script>
+
+  function showSlides(n) {
+    var i;
+    var slides = document.getElementsByClassName("mySlides");
+    var dots = document.getElementsByClassName("dot");
+    if (n > slides.length) {slideIndex = 1}
+    if (n < 1) {slideIndex = slides.length}
+    for (i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+    }
+    for (i = 0; i < dots.length; i++) {
+        dots[i].className = dots[i].className.replace(" active", "");
+    }
+    slides[slideIndex-1].style.display = "block";
+    dots[slideIndex-1].className += " active";
+  }
+  </script>
 {% endblock %}

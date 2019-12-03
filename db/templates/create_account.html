@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Account creation{% endblock %}
 
-<head>
-  <title>Account creation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
-</head>
-
-<body>
+{% block main %}
   <div class="container">
     <h1>Account Creation</h1>
     To make a new account, please enter your personal details. These will be used as a reference when you book an appointment.
@@ -32,6 +26,4 @@
       <p class="error"><strong>Error:</strong> {{ msg }}
     {% endif %}
   </div>
-</body>
-
-</html>
+{% endblock %}

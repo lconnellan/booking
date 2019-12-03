@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Client Choice{% endblock %}
+
+{% block main %}
+  <div class="main">
+    <h1>Since you are not signed in as a client, please choose a client from the list to book this appointment for.</h1>
+    <form method="POST">
+      {% if clients %}
+        {% for c in clients %}
+          <button type="submit" name="type" value='{{c[1]}}'> {{c[0]}} </button>
+        {% endfor %}
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}

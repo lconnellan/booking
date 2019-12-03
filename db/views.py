@@ -67,12 +67,14 @@ class Database:
         self.cur.execute("SELECT password FROM users WHERE email = '" + email_in + "'")
         password = self.cur.fetchall()[0]['password']
         if password_in == password:
-            flash('Signed in.')
+            session['msg'] = 'Signed in.'
             session['email'] = email_in
             self.cur.execute("SELECT access_lvl FROM users WHERE email = '" + email_in + "'")
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
             self.cur.execute("SELECT client_id FROM users WHERE email = '" + email_in + "'")
-            session['client_id'] = self.cur.fetchall()[0]['client_id']
+            client_id = self.cur.fetchall()[0]['client_id']
+            if client_id != None:
+                session['client_id'] = client_id
         else:
             flash('Email or password incorrect. Please try again.')
 
@@ -97,6 +99,7 @@ def auth_required(level=2):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if 'msg' in session:
+        print('hello')
         msg = session['msg']
         session.pop('msg', None)
     else:
@@ -107,7 +110,9 @@ def index():
         elif request.form['category'] == "logout":
             session.pop('email', None)
             session.pop('access_lvl', None)
+            session.pop('client_id', None)
             session['msg'] = "You have logged out."
+            return redirect(url_for('index'))
     return render_template('index.html', msg=msg, session=session)
 
 @app.route('/database', methods=['GET', 'POST'])
@@ -119,7 +124,8 @@ def database():
         if request.form['category'] == "logout":
             session.pop('email', None)
             session.pop('access_lvl', None)
-            flash("You have logged out.")
+            session.pop('client_id', None)
+            session['msg'] = "You have logged out."
             return redirect(url_for('index'))
     return render_template('database.html', result=res)
 
@@ -399,7 +405,11 @@ def practitioner_choice():
         res = ast.literal_eval(request.form['type'])
         session['prac'] = res[0]
         session['prac_id'] = res[1]
-        return redirect(url_for('confirmation'))
+        if 'client_id' in session or 'client_id_tmp' in session:
+            print(session['client_id'])
+            return redirect(url_for('confirmation'))
+        else:
+            return redirect(url_for('client_choice'))
     return render_template('practitioner_choice.html', pracs=session['pracs'])
 
 @app.route('/confirmation', methods=['GET', 'POST'])
@@ -407,25 +417,42 @@ def practitioner_choice():
 def confirmation():
     if request.method == 'POST':
         if request.form['answer'] == "proceed":
+            db = Database()
+            if 'client_id' in session:
+                client_id = session['client_id']
+            else:
+                client_id = session['client_id_tmp']
+                session.pop('client_id_tmp')
+            room_id = session['prac_id'] # assumed each prac has own room for now
+            notes = 'NULL' # needs to be set up
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \
+                           start, end, notes, price) VALUES(" + str(session['prac_id']) \
+                           + ", " + str(client_id) + ", " + str(room_id) + ", '" \
+                           + session['date'] + "', '" + session['time_slot'] + "', '" \
+                           + session['end'] + "', " + notes + ", " + session['price'] + ");")
+            db.con.commit()
             return redirect(url_for('completed'))
         elif request.form['answer'] == "cancel":
             return redirect(url_for('index'))
     return render_template('confirmation.html', session=session)
 
+@app.route('/client_choice', methods=['GET', 'POST'])
+@auth_required(level=2)
+def client_choice():
+    db = Database()
+    db.cur.execute("SELECT name, surname, client_id FROM clients")
+    res = db.cur.fetchall()
+    clients = [[entry['name'] + ' '  + entry['surname'], entry['client_id']] for entry in res]
+    if request.method == 'POST':
+        res = ast.literal_eval(request.form['type'])
+        session['client_id_tmp'] = res
+        return redirect(url_for('confirmation'))
+    return render_template('client_choice.html', clients=clients)
+
 @app.route('/completed', methods=['GET', 'POST'])
 @auth_required(level=0)
 def completed():
     if request.method == 'POST':
-        db = Database()
-        client_id = session['client_id']
-        room_id = session['prac_id'] # assumed each prac has own room for now
-        notes = 'NULL' # needs to be set up
-        db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \
-                       start, end, notes, price) VALUES(" + str(session['prac_id']) \
-                       + ", " + str(client_id) + ", " + str(room_id) + ", '" \
-                       + session['date'] + "', '" + session['time_slot'] + "', '" \
-                       + session['end'] + "', " + notes + ", " + session['price'] + ");")
-        db.con.commit()
         if request.form['type'] == "return":
             return redirect(url_for('index'))
     return render_template('completed.html')

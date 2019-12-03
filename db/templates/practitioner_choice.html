@@ -1,19 +1,15 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Practitioner Choice{% endblock %}
 
-<head>
-  <title>Practitioner Choice</title>
-</head>
-
-<body>
-<h1>Please choose a practitioner for this time slot.</h1>
-  <form method="POST">
-    {% if pracs %}
-      {% for p in pracs %}
-        <button type="submit" name="type" value='{{p}}'> {{p[0]}} </button>
-      {% endfor %}
-    {% endif %}
-  </form>
-</body>
-
-</html>
+{% block main %}
+  <div class="main">
+    <h1>Please choose a practitioner for this time slot.</h1>
+    <form method="POST">
+      {% if pracs %}
+        {% for p in pracs %}
+          <button type="submit" name="type" value='{{p}}'> {{p[0]}} </button>
+        {% endfor %}
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}

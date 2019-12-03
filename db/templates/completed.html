@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Booking confirmed{% endblock %}
 
-<head>
-  <title>Confirmed</title>
-</head>
-
-<body>
-  Done!
-  <form method="POST">
-    <button type="submit" name="type" value="return">Return to homepage</button>
-  </form>
-</body>
-
-</html>
+{% block main %}
+  <div class="main">
+    Done!
+    <form method="POST">
+      <button type="submit" name="type" value="return">Return to homepage</button>
+    </form>
+  </div>
+{% endblock %}

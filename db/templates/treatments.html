@@ -1,19 +1,15 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Choose a Treatment{% endblock %}
 
-<head>
-  <title>Treatments</title>
-</head>
-
-<body>
-  <h1>Please choose a treatment.</h1>
-  <form method="POST">
-    {% if treatments %}
-      {% for t in treatments %}
-        <button type="submit" name="type" value='{{t}}'> {{t}} </button>
-      {% endfor %}
-    {% endif %}
-  </form>
-</body>
-
-</html>
+{% block main %}
+  <div class="main">
+    <h1>Please choose a treatment.</h1>
+    <form method="POST">
+      {% if treatments %}
+        {% for t in treatments %}
+          <button type="submit" name="type" value='{{t}}'> {{t}} </button>
+        {% endfor %}
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}
