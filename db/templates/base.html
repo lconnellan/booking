@@ -11,7 +11,15 @@
     <div class="topnav">
       FRAMEWORK LIVINGSTON
       <a href="{{ url_for('index') }}">Home</a> <br>
-      <a href="{{ url_for('treatments') }}">About</a>
+      <div class="dropdown">
+        <a href="{{ url_for('treatments') }}">About</a>
+        <div class="dropdown-content">
+          <a href="{{ url_for('treatments') }}">What is Osteopathy</a>
+          <a href="{{ url_for('create_account') }}">Our Team</a>
+          <a href="{{ url_for('create_account') }}">FAQ</a>
+          <a href="{{ url_for('create_account') }}">Privacy Policy</a>
+        </div>
+      </div>
       <div class="dropdown">
         <a href="{{ url_for('treatments') }}">Appointments</a>
         <div class="dropdown-content">

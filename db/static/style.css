@@ -72,6 +72,7 @@ a {
 }
 
 .topnav a {
+  white-space: nowrap;
   background-color: #ffffff;
   text-align: center;
   padding: 12px 14px;
