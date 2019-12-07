@@ -24,7 +24,7 @@ a {
   margin-right: 150px;
   margin-left: 150px;
   border-bottom-style: solid;
-  border-color: grey;
+  border-color: lightgrey;
   padding-bottom: 20px;
 }
 
@@ -57,7 +57,7 @@ a {
   margin-right: 150px;
   margin-left: 150px;
   border-bottom-style: solid;
-  border-color: grey;
+  border-color: lightgrey;
   padding-bottom: 20px;
   flex-wrap: nowrap;
   display: flex;
