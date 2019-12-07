@@ -28,6 +28,20 @@ a {
   padding-bottom: 20px;
 }
 
+/* Restore a formatting for main */
+.main a{
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: #069;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.main img{
+  float: right;
+}
+
 /* Message box for system messages */
 .msg-box {
   margin-top: 20px;
@@ -51,6 +65,31 @@ a {
   align-items: flex-start;
 }
 
+/* Large text */
+.large-text {
+  text-align: center;
+  color: #0065a3;
+  font-size: 65px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  flex-wrap: nowrap;
+}
+
+/* Medium text */
+.medium-text {
+  text-align: center;
+  color: #0065a3;
+  font-size: 40px;
+  margin-top: 0px;
+  margin-bottom: 25px;
+}
+
+/* Smaller text */
+.small-text {
+  font-size: 20px;
+  font-weight: bold
+}
+
 /* Add a top navigation bar */
 .topnav {
   color: #0065a3;
@@ -59,7 +98,7 @@ a {
   font-family: helvetica;
   overflow: visible;
   border-bottom-style: solid;
-  border-color: grey;
+  border-color: lightgrey;
   margin-top: 40px;
   margin-bottom: 15px;
   margin-right: 50px;

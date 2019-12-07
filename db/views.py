@@ -457,6 +457,6 @@ def completed():
             return redirect(url_for('index'))
     return render_template('completed.html')
 
-@app.route('/styles')
-def styles():
-    return render_template('styles.css', content_type='application/json')
+@app.route('/prices')
+def prices():
+    return render_template('prices.html')
