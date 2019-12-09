@@ -7,16 +7,6 @@ body {
 .mySlides {display: none}
 img {vertical-align: middle;}
 
-a {
-  background-color: #0065a3;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: normal;
-  color: white;
-}
-
 /* Margins for main part of page */
 .main {
   margin-top: 20px;
@@ -26,20 +16,13 @@ a {
   border-bottom-style: solid;
   border-color: lightgrey;
   padding-bottom: 20px;
-}
-
-/* Restore a formatting for main */
-.main a{
-  background: none!important;
-  border: none;
-  padding: 0!important;
-  color: #069;
-  text-decoration: underline;
-  cursor: pointer;
+  line-height: 1.6;
 }
 
 .main img{
   float: right;
+  height: auto%;
+  max-width: 40%;
 }
 
 /* Message box for system messages */
@@ -63,6 +46,16 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+.mainflex a {
+  background-color: #0065a3;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: normal;
+  color: white;
 }
 
 /* Large text */
@@ -144,6 +137,40 @@ a {
 .topnav a.active {
   background-color: #0065a3;
   color: white;
+}
+
+/* Create two columns that float next to each other */
+.column1 {
+  flex: 60%;
+}
+.column2 {
+  flex: 40%;
+  text-align: center;
+}
+.column2-flex {
+  flex: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Column headers */
+.column1-head {
+  flex: 60%;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+.column2-head {
+  flex: 40%;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.row {
+  display: flex;
 }
 
 .dropdown {

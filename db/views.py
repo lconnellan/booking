@@ -460,3 +460,11 @@ def completed():
 @app.route('/prices')
 def prices():
     return render_template('prices.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/what-to-expect')
+def what_to_expect():
+    return render_template('what_to_expect.html')
