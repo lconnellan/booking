@@ -21,9 +21,9 @@ class Database:
         self.cur = self.con.cursor()
     def list_table(self, table):
         """Fetch entries from a table, ignoring auto_inc and checking if str"""
-        self.cur.execute("SELECT * FROM " + table + " LIMIT 50")
+        self.cur.execute("SELECT * FROM %s LIMIT 50" % table)
         result = self.cur.fetchall()
-        self.cur.execute("SHOW COLUMNS FROM " + table)
+        self.cur.execute("SHOW COLUMNS FROM %s" % table)
         columns = self.cur.fetchall()
         column_type = {}
         for col in columns:
@@ -39,7 +39,7 @@ class Database:
                 column_type[col['Field']] = 'num'
         self.cur.execute("USE information_schema")
         self.cur.execute("SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME \
-                          FROM KEY_COLUMN_USAGE WHERE TABLE_NAME = '" + table + "'")
+                          FROM KEY_COLUMN_USAGE WHERE TABLE_NAME = %s", (table, ))
         foreign_keys = self.cur.fetchall()
         self.cur.execute("USE booking")
         named_keys = {}
@@ -47,31 +47,27 @@ class Database:
             if key['REFERENCED_TABLE_NAME'] != None:
                 rtable = key['REFERENCED_TABLE_NAME']
                 rcol = key['REFERENCED_COLUMN_NAME']
-                self.cur.execute("SELECT " + rtable + ".name, " + rtable + "." \
-                                 + rcol + " FROM " + rtable)
+                self.cur.execute("SELECT %s.name, %s.%s FROM %s" % (rtable, \
+                                 rtable, rcol, rtable))
                 tmp = self.cur.fetchall()
                 named_keys[rcol] = {}
                 for entry in tmp:
                     named_keys[rcol][entry[rcol]] = entry['name']
         return result, column_type, named_keys
-    def list_tables(self):
-        self.cur.execute("SHOW TABLES")
-        result = self.cur.fetchall()
-        return result
     def authenticate(self, email_in, password_in):
         """Hash password and check versus stored email/pass in db"""
         m = hashlib.md5()
         m.update(bytes(password_in, encoding='utf-8'))
         password_in = m.hexdigest()
         # fetch password from db
-        self.cur.execute("SELECT password FROM users WHERE email = '" + email_in + "'")
+        self.cur.execute("SELECT password FROM users WHERE email = %s", (email_in, ))
         password = self.cur.fetchall()[0]['password']
         if password_in == password:
             session['msg'] = 'Signed in.'
             session['email'] = email_in
-            self.cur.execute("SELECT access_lvl FROM users WHERE email = '" + email_in + "'")
+            self.cur.execute("SELECT access_lvl FROM users WHERE email = %s", (email_in, ))
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
-            self.cur.execute("SELECT client_id FROM users WHERE email = '" + email_in + "'")
+            self.cur.execute("SELECT client_id FROM users WHERE email = %s", (email_in, ))
             client_id = self.cur.fetchall()[0]['client_id']
             if client_id != None:
                 session['client_id'] = client_id
@@ -117,7 +113,8 @@ def logout():
 @auth_required(level=2)
 def database():
     db = Database()
-    res = db.list_tables()
+    db.cur.execute("SHOW TABLES")
+    res = db.cur.fetchall()
     return render_template('database.html', result=res)
 
 @app.route('/database/<table>', methods=['GET', 'POST'])
@@ -133,8 +130,8 @@ def tables(table):
             col_type = res[1]
             auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
             try:
-                db.cur.execute("DELETE FROM " + table + " WHERE " + auto_field + \
-                               " = " + request.form['delete'])
+                db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
+                               (table, auto_field, request.form['delete']))
                 db.con.commit()
             except:
                 error = 'Error: this row cannot be deleted as another row \
