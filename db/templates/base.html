@@ -33,10 +33,10 @@
         {% if session['access_lvl'] == 2 %}
           <a href="{{ url_for('database') }}">Database</a>
         {% endif %}
-        <button type="submit" name="category" value="logout">Log out</button>
+        <a href="{{ url_for('logout', next=request.endpoint) }}">Log out</a>
       {% endif %}
       {% if not 'email' in session %}
-        <a href="{{ url_for('login') }}">Log in</a>
+        <a href="{{ url_for('login', next=request.endpoint) }}">Log in</a>
       {% endif %}
     </div>
   </form>

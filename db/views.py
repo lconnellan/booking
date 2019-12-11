@@ -96,37 +96,28 @@ def auth_required(level=2):
         return wrapper
     return callable
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
     if 'msg' in session:
-        print('hello')
         msg = session['msg']
         session.pop('msg', None)
     else:
         msg = None
-    if request.method == 'POST':
-        if request.form['category'] == "login":
-            return redirect(url_for('login'))
-        elif request.form['category'] == "logout":
-            session.pop('email', None)
-            session.pop('access_lvl', None)
-            session.pop('client_id', None)
-            session['msg'] = "You have logged out."
-            return redirect(url_for('index'))
     return render_template('index.html', msg=msg, session=session)
 
-@app.route('/database', methods=['GET', 'POST'])
+@app.route('/logout')
+def logout():
+    session.pop('email', None)
+    session.pop('access_lvl', None)
+    session.pop('client_id', None)
+    session['msg'] = "You have logged out."
+    return redirect(request.args.get('next') or url_for('index'))
+
+@app.route('/database')
 @auth_required(level=2)
 def database():
     db = Database()
     res = db.list_tables()
-    if request.method == 'POST':
-        if request.form['category'] == "logout":
-            session.pop('email', None)
-            session.pop('access_lvl', None)
-            session.pop('client_id', None)
-            session['msg'] = "You have logged out."
-            return redirect(url_for('index'))
     return render_template('database.html', result=res)
 
 @app.route('/database/<table>', methods=['GET', 'POST'])
@@ -400,13 +391,13 @@ def booking():
     return render_template('booking.html', time_slots=time_slots)
 
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
+@auth_required(level=0)
 def practitioner_choice():
     if request.method == 'POST':
         res = ast.literal_eval(request.form['type'])
         session['prac'] = res[0]
         session['prac_id'] = res[1]
         if 'client_id' in session or 'client_id_tmp' in session:
-            print(session['client_id'])
             return redirect(url_for('confirmation'))
         else:
             return redirect(url_for('client_choice'))
