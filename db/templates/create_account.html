@@ -8,20 +8,21 @@
       To make a new account, please enter your personal details. These will be used as a reference when you book an appointment.
       <br>
       <form action="" method="post">
-         <br><input type=email placeholder="Email" name="email">
-         <br><input type=password placeholder="Password" name="password">
-         <br><input type=password placeholder="Confirm Password" name="password_confirm">
-         <br><input placeholder="First Name" name="name">
-         <br><input placeholder="Last Name" name="surname">
-         <br><input type=tel placeholder="Phone Number" name="phone_1">
+         <br><input type=email placeholder="Email*" name="email">
+         <br><input type=password placeholder="Password*" name="password">
+         <br><input type=password placeholder="Confirm Password*" name="password_confirm">
+         <br><input placeholder="First Name*" name="name">
+         <br><input placeholder="Last Name*" name="surname">
+         <br><input type=tel placeholder="Phone Number*" name="phone_1">
          <br><input type=tel placeholder="Phone number 2" name ="phone_2">
-         <br><input placeholder="Address line 1" name="address_1">
+         <br><input placeholder="Address line 1*" name="address_1">
          <br><input placeholder="Address line 2" name="address_2">
          <br><input placeholder="Address line 3" name="address_3">
-         <br><input placeholder="Town/City" name="city">
-         <br><input placeholder="Council Area/County" name="county">
-         <br><input placeholder="Postcode" name="postcode">
+         <br><input placeholder="Town/City*" name="city">
+         <br><input placeholder="Council Area/County*" name="county">
+         <br><input placeholder="Postcode*" name="postcode">
         <br><input type="submit" value="Submit">
+        <br>Values marked with * are required.
       </form>
       {% if msg %}
         <p class="error"><strong>Error:</strong> {{ msg }}
