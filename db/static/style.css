@@ -88,7 +88,13 @@ img {vertical-align: middle;}
   color: #0065a3;
   font-size: 40px;
   margin-top: 0px;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  margin-right: 240px;
+  margin-left: 240px;
+  border-bottom-style: solid;
+  border-color: lightgrey;
+  padding-top: 14px;
+  padding-bottom: 28px;
 }
 
 /* Smaller text */
@@ -153,35 +159,62 @@ img {vertical-align: middle;}
   color: white;
 }
 
-/* Create two columns that float next to each other */
-.column1 {
-  flex: 60%;
+/* Columns of various widths that float next to each other */
+.column-25 {
+  flex: 25%;
 }
-.column2 {
+.column-25 img{
+  max-width: 200px;
+	width: 80%;
+	height: auto;
+  display: block;
+  float: left;
+}
+.column-35 {
+  flex: 35%;
+}
+.column-35 img{
+  max-width: 200px;
+	width: 80%;
+	height: auto;
+  display: block;
+  float: left;
+}
+.column-40 {
   flex: 40%;
   text-align: center;
   padding-left: 15px;
 }
+.column-40 img{
+  max-width: 480px;
+	width: 100%;
+	height: auto;
+  display: block;
+}
+.column-60 {
+  flex: 60%;
+}
+.column-65 {
+  flex: 65%;
+}
+.column-75 {
+  flex: 75%;
+}
+
 /* Column headers */
-.column1-head {
+.column-60-head {
   flex: 60%;
   padding: 10px;
   text-align: center;
   font-size: 20px;
   font-weight: bold;
 }
-.column2-head {
+.column-40-head {
   flex: 40%;
   padding: 10px;
   text-align: center;
   font-size: 20px;
   font-weight: bold;
-}
-.column2 img{
-  max-width: 480px;
-	width: 100%;
-	height: auto;
-  display: block;
 }
 
 .row {

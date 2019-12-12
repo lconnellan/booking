@@ -453,3 +453,15 @@ def contact():
 @app.route('/what-to-expect')
 def what_to_expect():
     return render_template('what_to_expect.html')
+
+@app.route('/our-team')
+def our_team():
+    return render_template('our_team.html')
+
+@app.route('/faq')
+def faq():
+    return render_template('faq.html')
+
+@app.route('/osteopathy')
+def osteopathy():
+    return render_template('osteopathy.html')
