@@ -47,8 +47,7 @@ class Database:
             if key['REFERENCED_TABLE_NAME'] != None:
                 rtable = key['REFERENCED_TABLE_NAME']
                 rcol = key['REFERENCED_COLUMN_NAME']
-                self.cur.execute("SELECT %s.name, %s.%s FROM %s" % (rtable, \
-                                 rtable, rcol, rtable))
+                self.cur.execute("SELECT %s.name, %s.%s FROM %s" % (rtable, rtable, rcol, rtable))
                 tmp = self.cur.fetchall()
                 named_keys[rcol] = {}
                 for entry in tmp:
@@ -168,8 +167,7 @@ def tables_add(table):
                     else:
                         fieldnames += ', ' + fieldname
                         values += ', ' + value
-            db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % \
-                           (table, fieldnames, values))
+            db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
             db.con.commit()
             return redirect(url_for('tables', table=table))
     return render_template('tables_add.html', result=res[0], col_type=res[1], named_keys=res[2])
@@ -218,8 +216,7 @@ def create_account():
             m.update(bytes(password, encoding='utf-8'))
             password = m.hexdigest()
             # generate random auth key
-            key = ''.join([random.choice(string.ascii_letters \
-                  + string.digits) for n in range(32)])
+            key = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
             forms = request.form.copy()
             for f in forms:
                 if forms[f] == '':
@@ -230,8 +227,7 @@ def create_account():
                            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
                            (forms['name'], forms['surname'], forms['phone_1'], \
                            forms['phone_2'], forms['address_1'], forms['address_2'], \
-                           forms['address_3'], forms['city'], forms['county'], \
-                           forms['postcode']))
+                           forms['address_3'], forms['city'], forms['county'], forms['postcode']))
             db.con.commit()
             db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
             client_id = db.cur.fetchall()[0]['client_id']
@@ -242,19 +238,17 @@ def create_account():
             # send email with confirmation link
             link = 'http://192.168.251.131:6789/email_confirmation/' + key
             msg = Message("Please verify your email address", \
-                          sender=app.config.get('MAIL_USERNAME'), \
-                          recipients=[email])
+                          sender=app.config.get('MAIL_USERNAME'), recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
             session['msg'] = "An email has been sent to %s." % email
             return redirect(request.args.get('next') or url_for('index'))
     return render_template('create_account.html', msg=msg)
 
-@app.route('/email_confirmation/<key>', methods=['GET', 'POST'])
+@app.route('/email_confirmation/<key>')
 def email_confirmation(key):
     db = Database()
-    db.cur.execute("UPDATE users SET access_lvl = 0, auth_key = NULL WHERE \
-                    auth_key = %s", (key, ))
+    db.cur.execute("UPDATE users SET access_lvl = 0, auth_key = NULL WHERE auth_key = %s", (key, ))
     db.con.commit()
     return render_template('email_confirmation.html')
 
@@ -331,8 +325,8 @@ def booking():
                               (datetime.min + entry['end']).time(),
                entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
-    db.cur.execute("SELECT date, start, end, prac_id FROM bookings")
-    bookings = [[entry['date'], (datetime.min + entry['start']).time(),
+    db.cur.execute("SELECT name, start, end, prac_id FROM bookings")
+    bookings = [[entry['name'], (datetime.min + entry['start']).time(),
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
 
@@ -410,7 +404,7 @@ def confirmation():
                 session.pop('client_id_tmp')
             room_id = session['prac_id'] # assumed each prac has own room for now
             notes = 'NULL' # needs to be set up
-            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, date, \
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, name, \
                            start, end, notes, price) VALUES(" + str(session['prac_id']) \
                            + ", " + str(client_id) + ", " + str(room_id) + ", '" \
                            + session['date'] + "', '" + session['time_slot'] + "', '" \
@@ -465,3 +459,34 @@ def faq():
 @app.route('/osteopathy')
 def osteopathy():
     return render_template('osteopathy.html')
+
+@app.route('/my_appointments', methods=['GET', 'POST'])
+@auth_required(level=0)
+def my_appointments():
+    db = Database()
+    db.cur.execute("SELECT client_id, prac_id from users WHERE email = %s", (session['email']))
+    res = db.cur.fetchall()
+    client_id = res[0]['client_id']
+    prac_id = res[0]['prac_id']
+    if client_id == None:
+        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s" % str(prac_id))
+    else:
+        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s" % str(client_id))
+    bookings = db.cur.fetchall()
+    res = db.list_table('bookings')
+    if request.method == 'POST':
+        if 'delete' in request.form:
+            # delete using the primary key (which is identified by 'auto')
+            col_type = res[1]
+            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
+            try:
+                db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
+                               ('bookings', auto_field, request.form['delete']))
+                db.con.commit()
+            except:
+                error = 'Error: this row cannot be deleted as another row \
+                         in the table depends upon it.'
+                return redirect(url_for('error', error=error))
+            return redirect(url_for('my_appointments'))
+    return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
+                           named_keys=res[2], access_lvl=session['access_lvl'])

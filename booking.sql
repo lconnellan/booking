@@ -61,10 +61,9 @@ CREATE TABLE if not exists bookings (
   prac_id BIGINT UNSIGNED NOT NULL,
   client_id BIGINT UNSIGNED NOT NULL,
   room_id BIGINT UNSIGNED NOT NULL,
-  date DATE NOT NULL,
+  name DATE NOT NULL,
   start TIME NOT NULL,
   end TIME NOT NULL,
-  notes VARCHAR(8000),
   price DECIMAL(18,2) NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
@@ -80,7 +79,7 @@ BEGIN
   DECLARE vCnt INT ;
   SELECT COUNT(*) INTO vCnt FROM bookings
   WHERE (prac_id = NEW.prac_id OR room_id = NEW.room_id)
-  AND date = NEW.date
+  AND name = NEW.name
   AND ((start <= NEW.start AND end > NEW.start)
   OR (start >= NEW.start AND start < NEW.end));
   IF vCnt > 0 THEN
@@ -91,9 +90,9 @@ END; //
 DELIMITER ;
 
 TRUNCATE bookings;
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, date, start, end, notes, price)
-VALUES(1, 1, 1, 1, '2019-11-10', '10:30', '11:00', NULL, 30.00),
-(2, 1, 2, 2, '2019-11-12', '9:30', '10:30', NULL, 40.00);
+INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, name, start, end, price)
+VALUES(1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 30.00),
+(2, 1, 2, 2, '2019-12-16', '9:30', '10:30', 40.00);
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
@@ -156,3 +155,16 @@ CREATE TABLE if not exists users (
 INSERT IGNORE INTO users (user_id, email, password, access_lvl, client_id, prac_id)
 VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1),
 (2, 'john.doe@gmail.com', MD5('user'), 0, 1, NULL);
+
+CREATE TABLE if not exists notes (
+  note_id SERIAL PRIMARY KEY,
+  note TEXT,
+  timestamp DATETIME NOT NULL,
+  client_id BIGINT UNSIGNED NOT NULL,
+  prac_id BIGINT UNSIGNED NOT NULL,
+  booking_id BIGINT UNSIGNED,
+  FOREIGN KEY (client_id) REFERENCES clients(client_id),
+  FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
+  FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
+);
+INSERT IGNORE INTO notes (note_id, note, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('note.txt'), NOW(), 1, 1, 1);

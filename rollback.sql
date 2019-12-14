@@ -8,4 +8,5 @@ DROP TABLE treatments;
 DROP TABLE bookings;
 DROP TABLE avails;
 DROP TABLE users;
+DROP TABLE notes;
 SET FOREIGN_KEY_CHECKS = 1;

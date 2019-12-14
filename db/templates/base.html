@@ -16,6 +16,7 @@
         <a href="{{ url_for('osteopathy') }}">About</a>
         <div class="dropdown-content">
           <a href="{{ url_for('osteopathy') }}">What is Osteopathy</a>
+          <a href="{{ url_for('what_to_expect') }}">What to Expect</a>
           <a href="{{ url_for('our_team') }}">Our Team</a>
           <a href="{{ url_for('faq') }}">FAQ</a>
         </div>
@@ -24,9 +25,9 @@
         <a href="{{ url_for('treatments') }}">Appointments</a>
         <div class="dropdown-content">
           <a href="{{ url_for('treatments') }}">Book a session</a>
+          <a href="{{ url_for('my_appointments') }}">My appointments</a>
           <a href="{{ url_for('contact') }}">Contact</a>
           <a href="{{ url_for('prices') }}">Prices</a>
-          <a href="{{ url_for('what_to_expect') }}">What to Expect</a>
         </div>
       </div>
       {% if session['email'] %}

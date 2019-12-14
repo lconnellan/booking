@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Framework Livingston{% endblock %}
+
+{% block main %}
+  <form method="POST">
+    <table id="tables"><tbody>
+      {% if bookings %}
+        <tr>
+          <th>Practitioner</th>
+          <th>Client</th>
+          <th>Room</th>
+          <th>Date</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Price</th>
+          {% if access_lvl == 2 %}
+            <th>Notes</th>
+          {% endif %}
+        </tr>
+        {% for row in bookings %}
+          <tr>
+            {% for field in row %}
+              {% if field != 'notes' %}
+                {% if col_type[field] != 'auto' %}
+                  {% if col_type[field] == 'foreign' %}
+                    <td>{{ named_keys[field][row[field]] }}</td>
+                  {% else %}
+                    <td>{{ row[field] }}</td>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if access_lvl == 2 %}
+              <td>{{ row['notes'] }}</td>
+            {% endif %}
+            {% if access_lvl == 2 %}
+              {% for field in row %}
+                {% if col_type[field] == 'auto' %}
+                  <td><button type="submit" name="delete" value="{{row[field]}}"> Delete </button></td>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </tr>
+        {% endfor %}
+      {% endif %}
+    </tbody></table>
+  </form>
+{% endblock %}
