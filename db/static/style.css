@@ -7,6 +7,18 @@ body {
 .mySlides {display: none}
 img {vertical-align: middle;}
 
+
+#input-to-replace{
+    opacity: 0.2;
+    /*you want display: none; or something else here, the opacity is 
+    for you to see how it stays in sync*/
+}
+textarea{
+    display: block;
+    width: 300px;
+    height: 300px;
+}
+
 /* Margins for main part of page */
 .main {
   margin-top: 20px;

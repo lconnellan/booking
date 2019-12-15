@@ -477,8 +477,8 @@ def my_appointments():
     if request.method == 'POST':
         if 'delete' in request.form:
             try:
-                db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
-                               ('bookings', 'booking_id', request.form['delete']))
+                db.cur.execute("DELETE FROM bookings WHERE booking_id = %s" % \
+                               request.form['delete'])
                 db.con.commit()
             except:
                 error = 'Error: this row cannot be deleted as another row \
@@ -498,6 +498,32 @@ def appointment_notes(booking_id):
     notes = db.cur.fetchall()
     res = db.list_table('notes')
     if 'add' in request.form:
-        return redirect(url_for('appointment_notes_add.html', booking_id=booking_id))
+        return redirect(url_for('appointment_notes_add', booking_id=booking_id))
+    if 'delete' in request.form:
+        try:
+            db.cur.execute("DELETE FROM notes WHERE note_id = %s" % request.form['delete'])
+            db.con.commit()
+        except:
+            error = 'Error: this row cannot be deleted as another row \
+                     in the table depends upon it.'
+            return redirect(url_for('error', error=error))
+        return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
+                           named_keys=res[2])
+
+@app.route('/my_appointments/notes/<booking_id>_add', methods=['GET', 'POST'])
+@auth_required(level=2)
+def appointment_notes_add(booking_id):
+    db = Database()
+    db.cur.execute("SELECT * FROM notes where notes.booking_id = %s" % booking_id)
+    notes = db.cur.fetchall()[0]
+    res = db.list_table('notes')
+    if request.method == 'POST':
+        if request.form['submit'] == 'yes':
+            db.cur.execute("INSERT IGNORE INTO notes (note, timestamp, client_id, prac_id, \
+                           booking_id) VALUES(%s, NOW(), %s, %s, %s)", (request.form['note'], \
+                           notes['client_id'], notes['prac_id'], booking_id))
+            db.con.commit()
+            return redirect(url_for('appointment_notes', booking_id=booking_id))
+    return render_template('appointment_notes_add.html', notes=notes, col_type=res[1], \
                            named_keys=res[2])

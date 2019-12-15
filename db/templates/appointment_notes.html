@@ -5,7 +5,7 @@
   <div class="main">
     {% if notes %}
       <h1>Appointment notes for {{named_keys['booking_id'][notes[0]['booking_id']]}}
-      with {{named_keys['client_id'][notes[0]['client_id']]}}.</h1>
+      with {{named_keys['client_id'][notes[0]['client_id']]}}</h1>
       <form method="POST">
         <table id="notes"><tbody>
           {% if notes %}
