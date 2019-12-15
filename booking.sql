@@ -167,4 +167,4 @@ CREATE TABLE if not exists notes (
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 );
-INSERT IGNORE INTO notes (note_id, note, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('note.txt'), NOW(), 1, 1, 1);
+INSERT IGNORE INTO notes (note_id, note, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('/export/wynberg/lloyd/note.txt'), NOW(), 1, 1, 1);

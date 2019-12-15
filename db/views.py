@@ -476,17 +476,28 @@ def my_appointments():
     res = db.list_table('bookings')
     if request.method == 'POST':
         if 'delete' in request.form:
-            # delete using the primary key (which is identified by 'auto')
-            col_type = res[1]
-            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
             try:
                 db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
-                               ('bookings', auto_field, request.form['delete']))
+                               ('bookings', 'booking_id', request.form['delete']))
                 db.con.commit()
             except:
                 error = 'Error: this row cannot be deleted as another row \
                          in the table depends upon it.'
                 return redirect(url_for('error', error=error))
             return redirect(url_for('my_appointments'))
+        if 'view' in request.form:
+            return redirect(url_for('appointment_notes', booking_id=request.form['view']))
     return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
                            named_keys=res[2], access_lvl=session['access_lvl'])
+
+@app.route('/my_appointments/notes/<booking_id>', methods=['GET', 'POST'])
+@auth_required(level=2)
+def appointment_notes(booking_id):
+    db = Database()
+    db.cur.execute("SELECT * FROM notes where notes.booking_id = %s" % booking_id)
+    notes = db.cur.fetchall()
+    res = db.list_table('notes')
+    if 'add' in request.form:
+        return redirect(url_for('appointment_notes_add.html', booking_id=booking_id))
+    return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
+                           named_keys=res[2])

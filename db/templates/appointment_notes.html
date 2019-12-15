@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Appointment Notes{% endblock %}
+
+{% block main %}
+  <div class="main">
+    {% if notes %}
+      <h1>Appointment notes for {{named_keys['booking_id'][notes[0]['booking_id']]}}
+      with {{named_keys['client_id'][notes[0]['client_id']]}}.</h1>
+      <form method="POST">
+        <table id="notes"><tbody>
+          {% if notes %}
+            <tr>
+              <th>Note</th>
+              <th>Timestamp</th>
+            </tr>
+            {% for row in notes %}
+              <tr>
+                <td> {{ row['note'] }} </td>
+                <td> {{ row['timestamp'] }} </td>
+              {% for field in row %}
+                {% if col_type[field] == 'auto' %}
+                  <td><button type="submit" name="delete" value="{{row[field]}}"> Delete </button></td>
+                {% endif %}
+              {% endfor %}
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody></table>
+      {% else %}
+        <h1>No notes for selected appointment.</h1>
+      {% endif %}
+      <button type="submit" name="add"> Add new note </button>
+    </form>
+  </div>
+{% endblock %}
