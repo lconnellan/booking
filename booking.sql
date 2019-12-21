@@ -97,7 +97,7 @@ VALUES(1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 30.00),
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
   prac_id BIGINT UNSIGNED NOT NULL,
-  date DATE NOT NULL,
+  day ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
   start TIME NOT NULL,
   end TIME NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
@@ -112,7 +112,7 @@ BEGIN
   DECLARE vCnt INT;
   SELECT COUNT(*) INTO vCnt FROM avails
   WHERE (prac_id = NEW.prac_id)
-  AND date = NEW.date
+  AND day = NEW.day
   AND ((start <= NEW.start AND end > NEW.start)
   OR (start >= NEW.start AND start < NEW.end));
   IF vCnt > 0 THEN
@@ -123,22 +123,17 @@ END; //
 DELIMITER ;
 
 TRUNCATE avails;
-DROP PROCEDURE IF EXISTS avail_populate;
-DELIMITER //
-CREATE PROCEDURE avail_populate()
-BEGIN
-  DECLARE cur_date DATE DEFAULT CURDATE();
-  WHILE cur_date < DATE_ADD(CURDATE(), INTERVAL 30 DAY) DO
-    IF DAYOFWEEK(cur_date) != 1 THEN
-      INSERT INTO avails (prac_id, date, start, end)
-      VALUES (1, cur_date, '9:00', '17:00'),
-             (2, cur_date, '9:00', '17:00');
-    END IF;
-    SET cur_date = DATE_ADD(cur_date, INTERVAL 1 DAY);
-  END WHILE;
-END; //
-DELIMITER ;
-CALL avail_populate();
+INSERT IGNORE INTO avails (prac_id, day, start, end)
+VALUES (1, 'Monday', '9:00', '17:00'),
+       (1, 'Wednesday', '9:00', '17:00'),
+       (1, 'Thursday', '9:00', '16:00'),
+       (1, 'Friday', '9:00', '13:30'),
+       (1, 'Saturday', '9:00', '16:00'),
+       (2, 'Monday', '9:00', '17:00'),
+       (2, 'Wednesday', '9:00', '17:00'),
+       (2, 'Thursday', '9:00', '16:00'),
+       (2, 'Friday', '9:00', '13:30'),
+       (2, 'Saturday', '9:00', '16:00');
 
 CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,

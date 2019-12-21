@@ -285,7 +285,7 @@ def dates():
             if date_range_f[n] == request.form['date']:
                 day = n
         session['date'] = date_range[day].strftime('%Y-%m-%d')
-        session['datef'] = date_range[day].strftime('%A %d %B')
+        session['day'] = date_range[day].strftime('%A')
         return redirect(url_for('booking'))
     return render_template('dates.html', date_range=date_range_f)
 
@@ -320,8 +320,8 @@ def booking():
     error = None
     db = Database()
     # fetch list of availabilities
-    db.cur.execute("SELECT date, start, end, prac_id FROM avails")
-    avails = [[entry['date'], (datetime.min + entry['start']).time(),
+    db.cur.execute("SELECT day, start, end, prac_id FROM avails")
+    avails = [[entry['day'], (datetime.min + entry['start']).time(),
                               (datetime.min + entry['end']).time(),
                entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
@@ -333,7 +333,10 @@ def booking():
     # filter out avails for other dates
     valid_avails = []
     for a in avails:
-        if session['date'] == a[0].strftime('%Y-%m-%d'):
+        if session['day'] == a[0]:
+            a[0] = datetime(int(session['date'].split('-')[0]),
+                            int(session['date'].split('-')[1]),
+                            int(session['date'].split('-')[2]))
             valid_avails.append(a)
     if valid_avails == []:
         error = "Sorry no slots available. Please select another date."
@@ -405,10 +408,10 @@ def confirmation():
             room_id = session['prac_id'] # assumed each prac has own room for now
             notes = 'NULL' # needs to be set up
             db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, name, \
-                           start, end, notes, price) VALUES(" + str(session['prac_id']) \
+                           start, end, price) VALUES(" + str(session['prac_id']) \
                            + ", " + str(client_id) + ", " + str(room_id) + ", '" \
                            + session['date'] + "', '" + session['time_slot'] + "', '" \
-                           + session['end'] + "', " + notes + ", " + session['price'] + ");")
+                           + session['end'] + "', " + session['price'] + ");")
             db.con.commit()
             return redirect(url_for('completed'))
         elif request.form['answer'] == "cancel":
