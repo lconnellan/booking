@@ -43,7 +43,7 @@
   </form>
   <div class="msg-box">
     {% if msg %}
-      {{ msg }}
+      <strong>{{ msg }}</strong>
     {% endif %}
     {% with messages = get_flashed_messages() %}
       {% if messages %}

@@ -200,12 +200,16 @@ def create_account():
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
-            error = 'Passwords do not match'
+            error = 'Error: passwords do not match'
             session['error'] = error
             return redirect(url_for('create_account'))
         else:
             password = request.form['password']
             email = request.form['email']
+            if not '@' in email or not '.' in email:
+                error = 'Error: email not valid.'
+                session['error'] = error
+                return redirect(url_for('create_account'))
             db.cur.execute("SELECT email FROM users")
             emails = [emails['email'] for emails in db.cur.fetchall()]
             if email in emails:
@@ -411,7 +415,7 @@ def booking():
     if request.method == 'POST':
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
-        session['end'] = (datetime(1990,1,1, int(res[0].split(':')[0]), \
+        session['end'] = (datetime(1990, 1, 1, int(res[0].split(':')[0]), \
                           int(res[0].split(':')[1])) + timedelta( \
                           hours=int(session['duration'].split('.')[0]), \
                           minutes=int(session['duration'].split('.')[1]))).strftime('%-H:%M')
