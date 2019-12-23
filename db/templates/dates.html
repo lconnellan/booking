@@ -10,22 +10,38 @@
       {% if date_range %}
         <tr>
         {% for i in range (0, 7) %}
-          <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% if avails[i] == 'True' %}
+            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% else %}
+            <td> {{date_range[i]}} </td>
+          {% endif %}
         {% endfor %}
         </tr>
         <tr>
         {% for i in range (7, 14)%}
-          <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% if avails[i] == 'True' %}
+            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% else %}
+            <td> {{date_range[i]}} </td>
+          {% endif %}
         {% endfor %}
         </tr>
         <tr>
         {% for i in range (14, 21)%}
-          <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% if avails[i] == 'True' %}
+            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% else %}
+            <td> {{date_range[i]}} </td>
+          {% endif %}
         {% endfor %}
         </tr>
         <tr>
         {% for i in range (21, 28)%}
-          <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% if avails[i] == 'True' %}
+            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
+          {% else %}
+            <td> {{date_range[i]}} </td>
+          {% endif %}
         {% endfor %}
         </tr>
       {% endif %}

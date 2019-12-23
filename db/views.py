@@ -319,26 +319,6 @@ def treatments():
         return redirect(url_for('dates'))
     return render_template('treatments.html', treatments=treatments)
 
-@app.route('/dates', methods=['GET', 'POST'])
-def dates():
-    # collect list of dates for next month
-    today = date.today()
-    date_range = [today]
-    for n in range(1, 28):
-        date_range.append(today + timedelta(days=n))
-    # format it nicely
-    date_range_f = [d.strftime("%A %d %B") for d in date_range]
-
-    # reobtain original date from user input and store it
-    if request.method == 'POST':
-        for n in range(0, 28):
-            if date_range_f[n] == request.form['date']:
-                day = n
-        session['date'] = date_range[day].strftime('%Y-%m-%d')
-        session['day'] = date_range[day].strftime('%A')
-        return redirect(url_for('booking'))
-    return render_template('dates.html', date_range=date_range_f)
-
 def datetime_range(start, end, delta):
     """Generator function for time range"""
     current = start
@@ -365,9 +345,7 @@ def interval_conversion(list, avail=False):
                                   datetime.combine(l[0], l[2])), l[3]])
     return intervals_list
 
-@app.route('/booking', methods=['GET', 'POST'])
-def booking():
-    error = None
+def time_slots(date, day):
     db = Database()
     # fetch list of availabilities
     db.cur.execute("SELECT day, start, end, prac_id FROM avails")
@@ -380,18 +358,16 @@ def booking():
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
 
-    # filter out avails for other dates
+    # fetch availabilities for current day
     valid_avails = []
     for a in avails:
-        if session['day'] == a[0]:
-            a[0] = datetime(int(session['date'].split('-')[0]),
-                            int(session['date'].split('-')[1]),
-                            int(session['date'].split('-')[2]))
+        if day == a[0]:
+            a[0] = datetime(int(date.split('-')[0]),
+                            int(date.split('-')[1]),
+                            int(date.split('-')[2]))
             valid_avails.append(a)
-    if valid_avails == []:
-        error = "Sorry no slots available. Please select another date."
-        return render_template('booking.html', error=error)
-    # make the time periods into intervals instead
+    if not valid_avails:
+        return []
     avails_i = interval_conversion(valid_avails, avail=True)
     bookings_i = interval_conversion(bookings)
     # subtract booked periods from available ones
@@ -411,7 +387,41 @@ def booking():
             if t in avail[0]:
                 pracs.append(avail[1])
         time_slots[i] = [t.strftime('%-H:%M'), pracs]
+    return time_slots
 
+@app.route('/dates', methods=['GET', 'POST'])
+def dates():
+    # collect list of dates for next month
+    today = date.today()
+    date_range = [today]
+    for n in range(1, 28):
+        date_range.append(today + timedelta(days=n))
+    # format it nicely
+    date_range_f = [d.strftime("%A %d %B") for d in date_range]
+    avails = []
+    for d in date_range:
+        dat = d.strftime('%Y-%m-%d')
+        day = d.strftime('%A')
+        slots = time_slots(dat, day)
+        if not slots:
+            avails.append('False')
+        else:
+            avails.append('True')
+
+    # reobtain original date from user input and store it
+    if request.method == 'POST':
+        for n in range(0, 28):
+            if date_range_f[n] == request.form['date']:
+                day = n
+        session['date'] = date_range[day].strftime('%Y-%m-%d')
+        session['day'] = date_range[day].strftime('%A')
+        return redirect(url_for('booking'))
+    return render_template('dates.html', date_range=date_range_f, avails=avails)
+
+@app.route('/booking', methods=['GET', 'POST'])
+def booking():
+    db = Database()
+    slots = time_slots(session['date'], session['day'])
     if request.method == 'POST':
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
@@ -429,7 +439,7 @@ def booking():
         session['pracs'] = pracs
         return redirect(url_for('practitioner_choice'))
 
-    return render_template('booking.html', time_slots=time_slots)
+    return render_template('booking.html', time_slots=slots)
 
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
 @auth_required(level=0)
