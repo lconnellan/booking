@@ -186,6 +186,8 @@ def login():
             return redirect(request.args.get('next') or url_for('index'))
         if request.form['next'] == 'create':
             return redirect(url_for('create_account'))
+        if request.form['next'] == 'reset':
+            return redirect(url_for('reset_password'))
     return render_template('login.html', msg=msg)
 
 @app.route('/create_account', methods=['GET', 'POST'])
@@ -241,7 +243,7 @@ def create_account():
                           sender=app.config.get('MAIL_USERNAME'), recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
-            session['msg'] = "An email has been sent to %s." % email
+            session['msg'] = "An email has been sent to %s to confirm your registration." % email
             return redirect(request.args.get('next') or url_for('index'))
     return render_template('create_account.html', msg=msg)
 
@@ -251,6 +253,50 @@ def email_confirmation(key):
     db.cur.execute("UPDATE users SET access_lvl = 0, auth_key = NULL WHERE auth_key = %s", (key, ))
     db.con.commit()
     return render_template('email_confirmation.html')
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    db = Database()
+    if request.method == 'POST':
+        email = request.form['email']
+        # generate random auth key
+        key = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
+        db.cur.execute("UPDATE users SET auth_key = %s WHERE email = %s", (key, email))
+        db.con.commit()
+        # send email with confirmation link
+        link = 'http://192.168.251.131:6789/reset_confirmation/' + key
+        msg = Message("Password reset confirmation", sender=app.config.get('MAIL_USERNAME'), recipients=[email])
+        msg.html = render_template('pass_reset.html', link=link)
+        mail.send(msg)
+        session['msg'] = "An email has been sent to %s reset your password." % email
+        return redirect(request.args.get('next') or url_for('index'))
+    return render_template('reset_password.html')
+
+@app.route('/reset_confirmation/<key>', methods=['GET', 'POST'])
+def reset_confirmation(key):
+    if 'error' in session:
+        msg = session['error']
+        session.pop('error', None)
+    else:
+        msg = None
+    db = Database()
+    if request.method == 'POST':
+        if not request.form['password'] == request.form['password_confirm']:
+            error = 'Passwords do not match'
+            session['error'] = error
+            return redirect(url_for('reset_confirmation', key=key))
+        else:
+            password = request.form['password']
+            #generate hashed password
+            m = hashlib.md5()
+            m.update(bytes(password, encoding='utf-8'))
+            password = m.hexdigest()
+            db.cur.execute("UPDATE users SET password = %s, auth_key = NULL WHERE auth_key = %s", \
+                           (password, key))
+            db.con.commit()
+            session['msg'] = "You have successfully changed your password."
+            return redirect(url_for('index'))
+    return render_template('reset_confirmation.html', msg=msg)
 
 @app.route('/treatments', methods=['GET', 'POST'])
 def treatments():

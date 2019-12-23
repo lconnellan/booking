@@ -2,6 +2,8 @@
 {% block title %}Email Confirmed{% endblock %}
 
 {% block main %}
-  Thank you for confirming your registration. Your account has been activated.
-  <a href="{{ url_for('index') }}">Return to index</a>
+  <div class="main">
+    Thank you for confirming your registration. Your account has been activated.
+    <br><a href="{{ url_for('index') }}">Return to index</a>
+  </div>
 {% endblock %}

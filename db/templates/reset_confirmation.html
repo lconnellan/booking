@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Reset confirmation{% endblock %}
+
+{% block main %}
+  <div class="main">
+    <div class="container">
+      <h1>Please enter a new password</h1>
+      <br>
+      <form action="" method="post">
+         <br><input type="password" placeholder="Password" name="password" value="{{
+          request.form.password }}">
+         <br><input type="password" placeholder="Password confirm" name="password_confirm" value="{{
+          request.form.password_confirm }}">
+         <br><button type="submit" name='next'> Submit </button>
+      </form>
+      {% if msg %}
+        <p class="error"><strong>Error:</strong> {{ msg }}<br>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
