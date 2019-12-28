@@ -226,7 +226,12 @@ def create_account():
             forms = request.form.copy()
             for f in forms:
                 if forms[f] == '':
-                    forms[f] = None
+                    if any(f == field for field in ['phone_2', 'address_2', 'address_3']):
+                        forms[f] = None
+                    else:
+                        error = 'Please submit details for all fields marked with a *'
+                        session['error'] = error
+                        return redirect(url_for('create_account'))
             # insert new details into db
             db.cur.execute("INSERT IGNORE INTO clients (name, surname, phone_1, phone_2, \
                            address_1, address_2, address_3, city, county, postcode) \
