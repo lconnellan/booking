@@ -8,11 +8,6 @@ body {
 img {vertical-align: middle;}
 
 
-#input-to-replace{
-    opacity: 0.2;
-    /*you want display: none; or something else here, the opacity is 
-    for you to see how it stays in sync*/
-}
 textarea{
     display: block;
     width: 300px;
@@ -197,6 +192,10 @@ textarea{
   text-align: center;
   padding-left: 15px;
 }
+.column-40-left {
+  flex: 40%;
+  padding-right: 15px;
+}
 .column-40 img{
   max-width: 480px;
 	width: 100%;
@@ -231,6 +230,11 @@ textarea{
 
 .row {
   display: flex;
+}
+.blue-center {
+  text-align: center;
+  color: #0065a3;
+  font-size: 40px;
 }
 
 .dropdown {
