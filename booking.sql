@@ -89,7 +89,6 @@ BEGIN
 END; //
 DELIMITER ;
 
-TRUNCATE bookings;
 INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, name, start, end, price)
 VALUES(1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 30.00),
 (2, 1, 2, 2, '2019-12-16', '9:30', '10:30', 40.00);
@@ -134,6 +133,18 @@ VALUES (1, 'Monday', '9:00', '17:00'),
        (2, 'Thursday', '9:00', '16:00'),
        (2, 'Friday', '9:00', '13:30'),
        (2, 'Saturday', '9:00', '16:00');
+
+CREATE TABLE if not exists blocked_periods (
+  bp_id SERIAL PRIMARY KEY,
+  prac_id BIGINT UNSIGNED NOT NULL,
+  date DATE NOT NULL,
+  start TIME NOT NULL,
+  end TIME NOT NULL,
+  FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
+);
+
+INSERT IGNORE INTO blocked_periods (bp_id, prac_id, date, start, end)
+VALUES (1, 1, '2019-12-30', '9:00', '10:30');
 
 CREATE TABLE if not exists users (
   user_id SERIAL PRIMARY KEY,

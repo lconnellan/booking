@@ -362,6 +362,11 @@ def time_slots(date, day):
     bookings = [[entry['name'], (datetime.min + entry['start']).time(),
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
+    # fetch list of blocked periods
+    db.cur.execute("SELECT date, start, end, prac_id FROM blocked_periods")
+    blocked = [[entry['date'], (datetime.min + entry['start']).time(),
+                                (datetime.min + entry['end']).time(),
+                 entry['prac_id']] for entry in db.cur.fetchall()]
 
     # fetch availabilities for current day
     valid_avails = []
@@ -375,9 +380,12 @@ def time_slots(date, day):
         return []
     avails_i = interval_conversion(valid_avails, avail=True)
     bookings_i = interval_conversion(bookings)
+    blocked_i = interval_conversion(blocked)
     # subtract booked periods from available ones
     for a in avails_i:
         for b in bookings_i:
+            a[0] = a[0] - b[0]
+        for b in blocked_i:
             a[0] = a[0] - b[0]
 
     # generate list of all possible times in a day
@@ -595,3 +603,34 @@ def appointment_notes_add(booking_id):
             return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', notes=notes, col_type=res[1], \
                            named_keys=res[2])
+
+@app.route('/block_periods', methods=['GET', 'POST'])
+@auth_required(level=2)
+def block_periods():
+    db = Database()
+    db.cur.execute("SELECT prac_id from users WHERE email = %s", (session['email']))
+    res = db.cur.fetchall()
+    prac_id = res[0]['prac_id']
+    db.cur.execute("SELECT * FROM blocked_periods where blocked_periods.prac_id = %s" \
+                   % str(prac_id))
+    blocked = db.cur.fetchall()
+    res = db.list_table('blocked_periods')
+    if request.method == 'POST':
+        print(request.form)
+        if 'submit' in request.form:
+            db.cur.execute("INSERT IGNORE INTO blocked_periods (date, start, end, prac_id) \
+                           VALUES(%s, %s, %s, %s)", (request.form['date'], request.form['start'], \
+                           request.form['end'], str(prac_id)))
+            db.con.commit()
+            return redirect(url_for('block_periods'))
+        elif 'delete' in request.form:
+            try:
+                db.cur.execute("DELETE FROM blocked_periods WHERE bp_id = %s" \
+                               % request.form['delete'])
+                db.con.commit()
+            except:
+                error = 'Error: this row cannot be deleted as another row \
+                         in the table depends upon it.'
+                return redirect(url_for('error', error=error))
+            return redirect(url_for('block_periods'))
+    return render_template('block_periods.html', blocked=blocked)

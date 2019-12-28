@@ -7,6 +7,7 @@ DROP TABLE room_types;
 DROP TABLE treatments;
 DROP TABLE bookings;
 DROP TABLE avails;
+DROP TABLE blocked_periods;
 DROP TABLE users;
 DROP TABLE notes;
 SET FOREIGN_KEY_CHECKS = 1;

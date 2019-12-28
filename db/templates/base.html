@@ -24,15 +24,21 @@
       <div class="dropdown">
         <a href="{{ url_for('treatments') }}">Appointments</a>
         <div class="dropdown-content">
-          <a href="{{ url_for('treatments') }}">Book a session</a>
-          <a href="{{ url_for('my_appointments') }}">My appointments</a>
+          <a href="{{ url_for('treatments') }}">Book a Session</a>
+          <a href="{{ url_for('my_appointments') }}">My Appointments</a>
           <a href="{{ url_for('contact') }}">Contact</a>
           <a href="{{ url_for('prices') }}">Prices</a>
         </div>
       </div>
       {% if session['email'] %}
         {% if session['access_lvl'] == 2 %}
-          <a href="{{ url_for('database') }}">Database</a>
+          <div class="dropdown">
+            <a href="{{ url_for('database') }}">Administration</a>
+            <div class="dropdown-content">
+              <a href="{{ url_for('database') }}">Database</a>
+              <a href="{{ url_for('block_periods') }}">Block Periods</a>
+            </div>
+          </div>
         {% endif %}
         <a href="{{ url_for('logout', next=request.path[1:]) }}">Log out</a>
       {% endif %}

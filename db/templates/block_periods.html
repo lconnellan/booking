@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Block Periods{% endblock %}
+
+{% block main %}
+  <div class="main">
+    <h2>Select periods where you would like to not have appointments available for booking</h2>
+    <form method="POST">
+      <table id="blocked_periods"><tbody>
+        {% if blocked %}
+          <tr>
+            <th>Date</th>
+            <th>Start</th>
+            <th>End</th>
+          </tr>
+          {% for row in blocked %}
+            <tr>
+              <td>{{ row['date'] }}</td>
+              <td>{{ row['start'] }}</td>
+              <td>{{ row['end'] }}</td>
+              <td><button type="submit" name="delete" value="{{row['bp_id']}}">Delete</button></td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+        <tr>
+          <td><input type="date" name='date'></td>
+          <td><input type="time" name='start'></td>
+          <td><input type="time" name='end'></td>
+          <td><button type="submit" name="submit" value="yes"> Add new block </button></td>
+        </tr>
+      </tbody></table>
+    </form>
+  </div>
+{% endblock %}
