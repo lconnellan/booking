@@ -226,17 +226,17 @@ def create_account():
             forms = request.form.copy()
             for f in forms:
                 if forms[f] == '':
-                    if any(f == field for field in ['phone_2', 'address_2', 'address_3']):
+                    if any(f == field for field in ['phone_2', 'address_2', 'address_3', 'county']):
                         forms[f] = None
                     else:
                         error = 'Please submit details for all fields marked with a *'
                         session['error'] = error
                         return redirect(url_for('create_account'))
             # insert new details into db
-            db.cur.execute("INSERT IGNORE INTO clients (name, surname, phone_1, phone_2, \
+            db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
                            address_1, address_2, address_3, city, county, postcode) \
-                           VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
-                           (forms['name'], forms['surname'], forms['phone_1'], \
+                           VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
+                           (forms['name'], forms['surname'], forms['dob'], forms['phone_1'], \
                            forms['phone_2'], forms['address_1'], forms['address_2'], \
                            forms['address_3'], forms['city'], forms['county'], forms['postcode']))
             db.con.commit()
@@ -575,15 +575,6 @@ def appointment_notes(booking_id):
     res = db.list_table('notes')
     if 'add' in request.form:
         return redirect(url_for('appointment_notes_add', booking_id=booking_id))
-    if 'delete' in request.form:
-        try:
-            db.cur.execute("DELETE FROM notes WHERE note_id = %s" % request.form['delete'])
-            db.con.commit()
-        except:
-            error = 'Error: this row cannot be deleted as another row \
-                     in the table depends upon it.'
-            return redirect(url_for('error', error=error))
-        return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
                            named_keys=res[2])
 
@@ -591,18 +582,20 @@ def appointment_notes(booking_id):
 @auth_required(level=2)
 def appointment_notes_add(booking_id):
     db = Database()
-    db.cur.execute("SELECT * FROM notes where notes.booking_id = %s" % booking_id)
-    notes = db.cur.fetchall()[0]
-    res = db.list_table('notes')
+    db.cur.execute("SELECT * FROM bookings WHERE booking_id = %s" % booking_id)
+    bookings = db.cur.fetchall()[0]
+    db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s" \
+                   % bookings['client_id'])
+    client_name = db.cur.fetchall()[0]
+    client = client_name['name'] + ' ' + client_name['surname']
     if request.method == 'POST':
         if request.form['submit'] == 'yes':
             db.cur.execute("INSERT IGNORE INTO notes (note, timestamp, client_id, prac_id, \
                            booking_id) VALUES(%s, NOW(), %s, %s, %s)", (request.form['note'], \
-                           notes['client_id'], notes['prac_id'], booking_id))
+                           bookings['client_id'], bookings['prac_id'], booking_id))
             db.con.commit()
             return redirect(url_for('appointment_notes', booking_id=booking_id))
-    return render_template('appointment_notes_add.html', notes=notes, col_type=res[1], \
-                           named_keys=res[2])
+    return render_template('appointment_notes_add.html', bookings=bookings, client=client)
 
 @app.route('/block_periods', methods=['GET', 'POST'])
 @auth_required(level=2)

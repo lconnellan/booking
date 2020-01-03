@@ -280,17 +280,30 @@ textarea{
 
 /* Style for tables */
 table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
 }
 td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
 }
 tr:nth-child(even) {
-    background-color: #dddddd;
+  background-color: #dddddd;
+}
+
+.acc table{
+  width: auto;
+}
+.acc td {
+  border: none;
+  text-align: left;
+  padding: 0px;
+  padding-right: 5px;
+}
+.acc tr:nth-child(even) {
+  background-color: #ffffff;
 }
 
 /* Slideshow container */

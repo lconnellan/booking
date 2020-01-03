@@ -4,6 +4,7 @@ CREATE TABLE if not exists clients (
   client_id SERIAL PRIMARY KEY,
   name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
+  dob DATE NOT NULL,
   phone_1 VARCHAR(25) NOT NULL,
   phone_2 VARCHAR(25),
   address_1 VARCHAR(150) NOT NULL,
@@ -13,9 +14,9 @@ CREATE TABLE if not exists clients (
   county VARCHAR(50),
   postcode VARCHAR(10) NOT NULL
 );
-INSERT IGNORE INTO clients (client_id, name, surname, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
-VALUES(1, 'John', 'Doe', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
-(2, 'Alice', 'Smith', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
+INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
+VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
+(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
@@ -44,8 +45,8 @@ CREATE TABLE if not exists treatments (
 );
 TRUNCATE treatments;
 INSERT IGNORE INTO treatments (treat_id, name, room_type_id, price, duration)
-VALUES(1, 'First appointment', 1, 40.00, 1.00),
-(2, 'Follow-up appointment', 1, 30.00, 0.30);
+VALUES(1, 'First appointment', 1, 55.00, 1.00),
+(2, 'Follow-up appointment', 1, 45.00, 0.30);
 
 CREATE TABLE if not exists rooms (
   room_id SERIAL PRIMARY KEY,

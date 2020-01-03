@@ -6,22 +6,69 @@
     <div class="container">
       <h2>Account Creation</h2>
       To make a new account, please enter your personal details. These will be used as a reference when you book an appointment.
-      <br>
+      <br><br>
       <form action="" method="post">
-         <br><input type=email placeholder="Email*" name="email">
-         <br><input type=password placeholder="Password*" name="password">
-         <br><input type=password placeholder="Confirm Password*" name="password_confirm">
-         <br><input placeholder="First Name*" name="name">
-         <br><input placeholder="Last Name*" name="surname">
-         <br><input type=tel placeholder="Phone Number*" name="phone_1">
-         <br><input type=tel placeholder="Phone number 2" name ="phone_2">
-         <br><input placeholder="Address line 1*" name="address_1">
-         <br><input placeholder="Address line 2" name="address_2">
-         <br><input placeholder="Address line 3" name="address_3">
-         <br><input placeholder="Town/City*" name="city">
-         <br><input placeholder="Council Area/County*" name="county">
-         <br><input placeholder="Postcode*" name="postcode">
-        <br><input type="submit" value="Submit">
+        <div class="acc">
+        <table id="tables"><tbody>
+          <tr>
+            <td>Email*</td>
+            <td><input type=email placeholder="Email" name="email"></td>
+          </tr>
+          <tr>
+            <td>Password*</td>
+            <td><input type=password placeholder="Password" name="password"></td>
+          </tr>
+          <tr>
+            <td>Confirm Password*</td>
+            <td><input type=password placeholder="Confirm Password" name="password_confirm"></td>
+          </tr>
+          <tr>
+            <td>First Name*</td>
+            <td><input placeholder="First Name" name="name"></td>
+          </tr>
+          <tr>
+            <td>Last Name*</td>
+            <td><input placeholder="Last Name" name="surname"></td>
+          </tr>
+          <tr>
+            <td>Date of Birth</td>
+            <td><input type=date name="dob"></td>
+          </tr>
+          <tr>
+            <td>Phone Number*</td>
+            <td><input type=tel placeholder="Phone Number" name="phone_1"></td>
+          </tr>
+          <tr>
+            <td>Phone Number 2</td>
+            <td><input type=tel placeholder="Phone number 2" name ="phone_2"></td>
+          </tr>
+          <tr>
+            <td>Address Line 1*</td>
+            <td><input placeholder="Address Line 1" name="address_1"></td>
+          </tr>
+          <tr>
+            <td>Address Line 2</td>
+            <td><input placeholder="Address Line 2" name="address_2"></td>
+          </tr>
+          <tr>
+            <td>Address Line 3</td>
+            <td><input placeholder="Address Line 3" name="address_3"></td>
+          </tr>
+          <tr>
+            <td>Town/City*</td>
+            <td><input placeholder="Town/City" name="city"></td>
+          </tr>
+          <tr>
+            <td>Council Area/County</td>
+            <td><input placeholder="Council Area/County" name="county"></td>
+          </tr>
+          <tr>
+            <td>Postcode*</td>
+            <td><input placeholder="Postcode" name="postcode"></td>
+          </tr>
+        </tbody></table>
+        </div>
+        <input type="submit" value="Submit">
         <br>Values marked with * are required.
       </form>
     </div>
