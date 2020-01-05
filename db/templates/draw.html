@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <link href="/static/literallycanvas.css" rel="stylesheet">
+    <script src="/static/react-with-addons.js"></script>
+    <script src="/static/react-dom.js"></script>
+
+    <!-- Literally Canvas -->
+    <script src="/static/literallycanvas.js"></script>
+  </head>
+  <body>
+    <div id="my-drawing"></div>
+
+    <!-- kick it off -->
+    <script>
+      var bodyImg = document.createElement("IMG");
+      bodyImg.src = "/static/pics/body.png";
+      lc = LC.init(
+          document.getElementById('my-drawing'),
+          {imageURLPrefix: '/static/pics/literallycanvas',
+           imageSize: {width: 818, height: 570},
+           backgroundShapes: [
+              LC.createShape(
+               'Image', {x: 0, y: 0, image: bodyImg, scale: 0.5}
+               )
+           ]
+        });
+      //lc.setImageSize(0, 0); //Infinite width, but fixed height
+      //lc.respondToSizeChange();
+    </script>
+  </body>
+</html

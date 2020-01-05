@@ -627,3 +627,7 @@ def block_periods():
                 return redirect(url_for('error', error=error))
             return redirect(url_for('block_periods'))
     return render_template('block_periods.html', blocked=blocked)
+
+@app.route('/draw')
+def draw():
+    return render_template('draw.html')
