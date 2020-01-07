@@ -4,28 +4,39 @@
     <script src="/static/react-with-addons.js"></script>
     <script src="/static/react-dom.js"></script>
 
-    <!-- Literally Canvas -->
     <script src="/static/literallycanvas.js"></script>
+    <script>
+    //function upload_file() {
+    //alert("TEST");
+    //}
+    </script>
   </head>
   <body>
     <div id="my-drawing"></div>
 
-    <!-- kick it off -->
+    <a href="javascript:upload_file();">Upload</a>
     <script>
       var bodyImg = document.createElement("IMG");
       bodyImg.src = "/static/pics/body.png";
       lc = LC.init(
-          document.getElementById('my-drawing'),
-          {imageURLPrefix: '/static/pics/literallycanvas',
-           imageSize: {width: 818, height: 570},
-           backgroundShapes: [
-              LC.createShape(
-               'Image', {x: 0, y: 0, image: bodyImg, scale: 0.5}
-               )
-           ]
-        });
-      //lc.setImageSize(0, 0); //Infinite width, but fixed height
-      //lc.respondToSizeChange();
+        document.getElementById('my-drawing'),
+        {imageURLPrefix: '/static/pics/literallycanvas',
+         imageSize: {width: 818, height: 570},
+         backgroundShapes: [
+            LC.createShape(
+             'Image', {x: 0, y: 0, image: bodyImg, scale: 0.5}
+             )
+         ]}
+      );
+      function upload_file(){
+        var blob = lc.getImage().toDataURL();
+        var oReq = new XMLHttpRequest();
+        oReq.onload = function(oEvent){
+        };
+        oReq.open("POST", "/file_upload", true);
+        oReq.setRequestHeader("Content-Type", "application/upload");
+        oReq.send(blob)
+      }
     </script>
   </body>
 </html

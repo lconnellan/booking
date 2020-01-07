@@ -166,6 +166,7 @@ VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1),
 CREATE TABLE if not exists notes (
   note_id SERIAL PRIMARY KEY,
   note TEXT,
+  image LONGBLOB,
   timestamp DATETIME NOT NULL,
   client_id BIGINT UNSIGNED NOT NULL,
   prac_id BIGINT UNSIGNED NOT NULL,
@@ -174,4 +175,6 @@ CREATE TABLE if not exists notes (
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 );
-INSERT IGNORE INTO notes (note_id, note, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('/export/wynberg/lloyd/note.txt'), NOW(), 1, 1, 1);
+
+
+INSERT IGNORE INTO notes (note_id, note, image, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('/export/wynberg/lloyd/note.txt'), NULL, NOW(), 1, 1, 1);

@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, session, flash
+from flask import render_template, redirect, url_for, request, session, flash, make_response, send_file
 from flask_mail import Message
 import pymysql
 import hashlib
@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, date, time
 import ast
 import random
 import string
+from io import BytesIO
+from base64 import decodebytes, b64decode
 
 from db import app, mail
 
@@ -479,7 +481,6 @@ def confirmation():
                 client_id = session['client_id_tmp']
                 session.pop('client_id_tmp')
             room_id = session['prac_id'] # assumed each prac has own room for now
-            notes = 'NULL' # needs to be set up
             db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, name, \
                            start, end, price) VALUES(" + str(session['prac_id']) \
                            + ", " + str(client_id) + ", " + str(room_id) + ", '" \
@@ -590,8 +591,8 @@ def appointment_notes_add(booking_id):
     client = client_name['name'] + ' ' + client_name['surname']
     if request.method == 'POST':
         if request.form['submit'] == 'yes':
-            db.cur.execute("INSERT IGNORE INTO notes (note, timestamp, client_id, prac_id, \
-                           booking_id) VALUES(%s, NOW(), %s, %s, %s)", (request.form['note'], \
+            db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
+                           booking_id) VALUES(%s, NULL, NOW(), %s, %s, %s)", (request.form['note'],\
                            bookings['client_id'], bookings['prac_id'], booking_id))
             db.con.commit()
             return redirect(url_for('appointment_notes', booking_id=booking_id))
@@ -628,6 +629,28 @@ def block_periods():
             return redirect(url_for('block_periods'))
     return render_template('block_periods.html', blocked=blocked)
 
-@app.route('/draw')
+@app.route('/draw', methods=['GET', 'POST'])
 def draw():
+    if request.method == 'POST':
+        print(request.form)
     return render_template('draw.html')
+
+@app.route('/file_upload', methods=['GET', 'POST'])
+def file_upload():
+    db = Database()
+    if request.method == 'POST':
+        with open('body.png', 'wb') as f:
+            f.write(request.data)
+        db.cur.execute("UPDATE notes SET image = %s WHERE note_id = 1", (request.data, ))
+        db.con.commit()
+        print('file upload request')
+    return make_response('uploaded', 200)
+
+@app.route('/last')
+def last_saved():
+    db = Database()
+    db.cur.execute("SELECT image FROM notes WHERE note_id = 1")
+    image = db.cur.fetchall()[0]['image']
+    image = image[22:]
+    img_io = BytesIO(b64decode(image))
+    return send_file(img_io, mimetype='image/png');
