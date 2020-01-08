@@ -367,7 +367,7 @@ def time_slots(date, day):
     # fetch list of availabilities
     db.cur.execute("SELECT day, start, end, prac_id FROM avails")
     avails = [[entry['day'], (datetime.min + entry['start']).time(),
-                              (datetime.min + entry['end']).time(),
+                             (datetime.min + entry['end']).time(),
                entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
     db.cur.execute("SELECT name, start, end, prac_id FROM bookings")
@@ -377,8 +377,8 @@ def time_slots(date, day):
     # fetch list of blocked periods
     db.cur.execute("SELECT date, start, end, prac_id FROM blocked_periods")
     blocked = [[entry['date'], (datetime.min + entry['start']).time(),
-                                (datetime.min + entry['end']).time(),
-                 entry['prac_id']] for entry in db.cur.fetchall()]
+                               (datetime.min + entry['end']).time(),
+                entry['prac_id']] for entry in db.cur.fetchall()]
 
     # fetch availabilities for current day
     valid_avails = []
@@ -396,9 +396,11 @@ def time_slots(date, day):
     # subtract booked periods from available ones
     for a in avails_i:
         for b in bookings_i:
-            a[0] = a[0] - b[0]
+            if a[1] == b[1]:
+                a[0] = a[0] - b[0]
         for b in blocked_i:
-            a[0] = a[0] - b[0]
+            if a[1] == b[1]:
+                a[0] = a[0] - b[0]
 
     # generate list of all possible times in a day
     time_slots = [dt for dt in
@@ -619,7 +621,6 @@ def block_periods():
     blocked = db.cur.fetchall()
     res = db.list_table('blocked_periods')
     if request.method == 'POST':
-        print(request.form)
         if 'submit' in request.form:
             db.cur.execute("INSERT IGNORE INTO blocked_periods (date, start, end, prac_id) \
                            VALUES(%s, %s, %s, %s)", (request.form['date'], request.form['start'], \
