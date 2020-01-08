@@ -8,7 +8,8 @@ import ast
 import random
 import string
 from io import BytesIO
-from base64 import decodebytes, b64decode
+from base64 import b64decode
+import intervals as intervals
 
 from db import app, mail
 
@@ -345,7 +346,6 @@ def datetime_range(start, end, delta):
 
 def interval_conversion(list, avail=False):
     """Converts time data into interval format"""
-    import intervals as intervals
     intervals_list = []
     dur_h = int(session['duration'].split('.')[0])
     dur_m = int(session['duration'].split('.')[1])
@@ -389,12 +389,21 @@ def time_slots(date, day):
                             int(date.split('-')[2]))
             valid_avails.append(a)
     if not valid_avails:
-        return []
+        return [], 0
     avails_i = interval_conversion(valid_avails, avail=True)
     bookings_i = interval_conversion(bookings)
     blocked_i = interval_conversion(blocked)
     # subtract booked periods from available ones
     for a in avails_i:
+        now = datetime.now()
+        # remove times that have already happened
+        a[0] = a[0] - intervals.closedopen(now - timedelta(hours=24), now)
+        # restrict to 12 hours in advance for non admin
+        if 'access_lvl' in session:
+            if session['access_lvl'] < 2:
+                a[0] = a[0] - intervals.closedopen(now, now + timedelta(hours=12))
+        else:
+            a[0] = a[0] - intervals.closedopen(now, now + timedelta(hours=12))
         for b in bookings_i:
             if a[1] == b[1]:
                 a[0] = a[0] - b[0]
@@ -408,13 +417,15 @@ def time_slots(date, day):
                        datetime.combine(valid_avails[0][0], time(hour=17, minute=55)),
                        timedelta(minutes=30))]
     # find available slots
+    sessions = 0
     for i, t in enumerate(time_slots):
         pracs = []
         for avail in avails_i:
             if t in avail[0]:
                 pracs.append(avail[1])
+                sessions += 1
         time_slots[i] = [t.strftime('%-H:%M'), pracs]
-    return time_slots
+    return time_slots, sessions
 
 @app.route('/dates', methods=['GET', 'POST'])
 def dates():
@@ -429,8 +440,8 @@ def dates():
     for d in date_range:
         dat = d.strftime('%Y-%m-%d')
         day = d.strftime('%A')
-        slots = time_slots(dat, day)
-        if not slots:
+        slots, sessions = time_slots(dat, day)
+        if sessions == 0:
             avails.append('False')
         else:
             avails.append('True')
@@ -448,7 +459,7 @@ def dates():
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
     db = Database()
-    slots = time_slots(session['date'], session['day'])
+    slots = time_slots(session['date'], session['day'])[0]
     if request.method == 'POST':
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
