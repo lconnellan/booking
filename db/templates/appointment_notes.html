@@ -7,18 +7,22 @@
       {% if notes %}
         <h2>Appointment notes for {{named_keys['booking_id'][notes[0]['booking_id']]}}
         with {{named_keys['client_id'][notes[0]['client_id']]}}</h2>
+        <div class="notes">
         <table id="notes"><tbody>
           <tr>
             <th>Note</th>
+            <th>Image</th>
             <th>Timestamp</th>
           </tr>
-          {% for row in notes %}
+          {% for i in range(0, notes|length) %}
             <tr>
-              <td> {{ row['note'] }} </td>
-              <td> {{ row['timestamp'] }} </td>
+              <td> {{ notes[i]['note'] }} </td>
+              <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
+              <td> {{ notes[i]['timestamp'] }} </td>
             </tr>
           {% endfor %}
         </tbody></table>
+        </div>
       {% else %}
         <h2>No notes for selected appointment.</h2>
       {% endif %}

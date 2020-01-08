@@ -5,16 +5,13 @@
     <script src="/static/react-dom.js"></script>
 
     <script src="/static/literallycanvas.js"></script>
-    <script>
-    //function upload_file() {
-    //alert("TEST");
-    //}
-    </script>
   </head>
   <body>
     <div id="my-drawing"></div>
 
-    <a href="javascript:upload_file();">Upload</a>
+    <form action="" method="post">
+      <a href="javascript:upload_file();">Upload</a>
+    </form>
     <script>
       var bodyImg = document.createElement("IMG");
       bodyImg.src = "/static/pics/body.png";

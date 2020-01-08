@@ -1,17 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Appointment Notes{% endblock %}
+{% block head %}
+<link href="/static/literallycanvas.css" rel="stylesheet">
+<script src="/static/react-with-addons.js"></script>
+<script src="/static/react-dom.js"></script>
+<script src="/static/literallycanvas.js"></script>
+{% endblock %}
 
 {% block main %}
   <div class="main">
     <h2>Adding note for appointment on {{bookings['name']}} with {{client}}</h2>
-    <form method="POST">
-      <textarea type="text" name="note" rows="10" cols="100"></textarea><br>
-      <button type="submit" name="submit" value="yes"> Submit </button>
+    <form name="form1" method="POST">
+      <h3> Note entry </h3>
+      <textarea type="text" name="note" rows="10" cols="300"></textarea><br>
+      <h3> Add diagram </h3>
+      <div id="my-drawing"></div>
+
+      <a type=submit name="yes" href="javascript:upload_file();"> Submit </a>
     </form>
-    <div id="like_button_container"></div>
   </div>
 
-  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
-  <script src="like_button.js"></script>
+  <script>
+    var bodyImg = document.createElement("IMG");
+    bodyImg.src = "/static/pics/body.png";
+    lc = LC.init(
+      document.getElementById('my-drawing'),
+      {imageURLPrefix: '/static/pics/literallycanvas',
+       backgroundShapes: [
+          LC.createShape(
+           'Image', {x: 0, y: 0, image: bodyImg, scale: 0.5}
+           )
+       ]}
+    );
+    function upload_file(){
+      document.form1.submit();
+      var blob = lc.getImage().toDataURL();
+      var oReq = new XMLHttpRequest();
+      oReq.onload = function(oEvent){
+      };
+      oReq.open("POST", "/file_upload", true);
+      oReq.setRequestHeader("Content-Type", "application/upload");
+      oReq.send(blob)
+    }
+  </script>
 {% endblock %}

@@ -62,7 +62,12 @@ class Database:
         password_in = m.hexdigest()
         # fetch password from db
         self.cur.execute("SELECT password FROM users WHERE email = %s", (email, ))
-        password = self.cur.fetchall()[0]['password']
+        res = self.cur.fetchall()
+        if not res:
+            flash('Email not registered. Please create an account.')
+            return False
+        else:
+            password = res[0]['password']
         if password_in == password:
             session['msg'] = 'Signed in.'
             session['email'] = email
@@ -72,8 +77,10 @@ class Database:
             client_id = self.cur.fetchall()[0]['client_id']
             if client_id != None:
                 session['client_id'] = client_id
+            return True
         else:
             flash('Email or password incorrect. Please try again.')
+            return False
 
 def auth_required(level=2):
     def callable(func):
@@ -85,7 +92,7 @@ def auth_required(level=2):
             elif session['access_lvl'] == -1:
                 session['error'] = 'Account registration still needs to be \
                                     completed. Please check your emails.'
-                return redirect(url_for('index', next=request.endpoint))
+                return redirect(url_for('index'))
             elif session['access_lvl'] < level:
                 session['error'] = 'User access level insufficient.'
                 return redirect(url_for('login', next=request.endpoint))
@@ -102,77 +109,11 @@ def index():
         msg = None
     return render_template('index.html', msg=msg, session=session)
 
-@app.route('/logout')
-def logout():
-    session.pop('email', None)
-    session.pop('access_lvl', None)
-    session.pop('client_id', None)
-    session['msg'] = "You have logged out."
-    return redirect(request.args.get('next') or url_for('index'))
-
-@app.route('/database')
-@auth_required(level=2)
-def database():
-    db = Database()
-    db.cur.execute("SHOW TABLES")
-    res = db.cur.fetchall()
-    return render_template('database.html', result=res)
-
-@app.route('/database/<table>', methods=['GET', 'POST'])
-@auth_required(level=2)
-def tables(table):
-    db = Database()
-    res = db.list_table(table)
-    if request.method == 'POST':
-        if 'add' in request.form:
-            return redirect(url_for('tables_add', table=table))
-        elif 'delete' in request.form:
-            # delete using the primary key (which is identified by 'auto')
-            col_type = res[1]
-            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
-            try:
-                db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
-                               (table, auto_field, request.form['delete']))
-                db.con.commit()
-            except:
-                error = 'Error: this row cannot be deleted as another row \
-                         in the table depends upon it.'
-                return redirect(url_for('error', error=error))
-            return redirect(url_for('tables', table=table))
-    return render_template('tables.html', result=res[0], col_type=res[1], named_keys=res[2])
-
 @app.route('/error/<error>', methods=['GET', 'POST'])
 def error(error):
     if request.method == 'POST':
         return redirect(url_for('index'))
     return render_template('error.html', error=error)
-
-@app.route('/database/<table>_add', methods=['GET', 'POST'])
-@auth_required(level=2)
-def tables_add(table):
-    db = Database()
-    res = db.list_table(table)
-    if request.method == 'POST':
-        if request.form['submit'] == 'yes':
-            first = True
-            # compose a string of inputs to put into database
-            for fieldname, value in request.form.items():
-                if fieldname != 'submit':
-                    col_type = res[1]
-                    if col_type[fieldname] == 'str':
-                        value = "'" + value + "'"
-                    # first entry doesn't need preceeding comma
-                    if first:
-                        fieldnames = fieldname
-                        values = value
-                        first = False
-                    else:
-                        fieldnames += ', ' + fieldname
-                        values += ', ' + value
-            db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
-            db.con.commit()
-            return redirect(url_for('tables', table=table))
-    return render_template('tables_add.html', result=res[0], col_type=res[1], named_keys=res[2])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -184,13 +125,24 @@ def login():
     db = Database()
     if request.method == 'POST':
         if request.form['next'] == 'login':
-            db.authenticate(request.form['email'], request.form['password'])
-            return redirect(request.args.get('next') or url_for('index'))
+            success = db.authenticate(request.form['email'], request.form['password'])
+            if success:
+                return redirect(request.args.get('next') or url_for('index'))
+            else:
+                return redirect(url_for('login', next=request.args.get('next')))
         if request.form['next'] == 'create':
             return redirect(url_for('create_account'))
         if request.form['next'] == 'reset':
             return redirect(url_for('reset_password'))
     return render_template('login.html', msg=msg)
+
+@app.route('/logout')
+def logout():
+    session.pop('email', None)
+    session.pop('access_lvl', None)
+    session.pop('client_id', None)
+    session['msg'] = "You have logged out."
+    return redirect(request.args.get('next') or url_for('index'))
 
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
@@ -308,6 +260,64 @@ def reset_confirmation(key):
             session['msg'] = "You have successfully changed your password."
             return redirect(url_for('index'))
     return render_template('reset_confirmation.html', msg=msg)
+
+@app.route('/database')
+@auth_required(level=2)
+def database():
+    db = Database()
+    db.cur.execute("SHOW TABLES")
+    res = db.cur.fetchall()
+    return render_template('database.html', result=res)
+
+@app.route('/database/<table>', methods=['GET', 'POST'])
+@auth_required(level=2)
+def tables(table):
+    db = Database()
+    res = db.list_table(table)
+    if request.method == 'POST':
+        if 'add' in request.form:
+            return redirect(url_for('tables_add', table=table))
+        elif 'delete' in request.form:
+            # delete using the primary key (which is identified by 'auto')
+            col_type = res[1]
+            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
+            try:
+                db.cur.execute("DELETE FROM %s WHERE %s = %s" % \
+                               (table, auto_field, request.form['delete']))
+                db.con.commit()
+            except:
+                error = 'Error: this row cannot be deleted as another row \
+                         in the table depends upon it.'
+                return redirect(url_for('error', error=error))
+            return redirect(url_for('tables', table=table))
+    return render_template('tables.html', result=res[0], col_type=res[1], named_keys=res[2])
+
+@app.route('/database/<table>_add', methods=['GET', 'POST'])
+@auth_required(level=2)
+def tables_add(table):
+    db = Database()
+    res = db.list_table(table)
+    if request.method == 'POST':
+        if request.form['submit'] == 'yes':
+            first = True
+            # compose a string of inputs to put into database
+            for fieldname, value in request.form.items():
+                if fieldname != 'submit':
+                    col_type = res[1]
+                    if col_type[fieldname] == 'str':
+                        value = "'" + value + "'"
+                    # first entry doesn't need preceeding comma
+                    if first:
+                        fieldnames = fieldname
+                        values = value
+                        first = False
+                    else:
+                        fieldnames += ', ' + fieldname
+                        values += ', ' + value
+            db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
+            db.con.commit()
+            return redirect(url_for('tables', table=table))
+    return render_template('tables_add.html', result=res[0], col_type=res[1], named_keys=res[2])
 
 @app.route('/treatments', methods=['GET', 'POST'])
 def treatments():
@@ -590,12 +600,11 @@ def appointment_notes_add(booking_id):
     client_name = db.cur.fetchall()[0]
     client = client_name['name'] + ' ' + client_name['surname']
     if request.method == 'POST':
-        if request.form['submit'] == 'yes':
-            db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
-                           booking_id) VALUES(%s, NULL, NOW(), %s, %s, %s)", (request.form['note'],\
-                           bookings['client_id'], bookings['prac_id'], booking_id))
-            db.con.commit()
-            return redirect(url_for('appointment_notes', booking_id=booking_id))
+        db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
+                       booking_id) VALUES(%s, NULL, NOW(), %s, %s, %s)", (request.form['note'],\
+                       bookings['client_id'], bookings['prac_id'], booking_id))
+        db.con.commit()
+        return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', bookings=bookings, client=client)
 
 @app.route('/block_periods', methods=['GET', 'POST'])
@@ -631,25 +640,26 @@ def block_periods():
 
 @app.route('/draw', methods=['GET', 'POST'])
 def draw():
-    if request.method == 'POST':
-        print(request.form)
     return render_template('draw.html')
 
 @app.route('/file_upload', methods=['GET', 'POST'])
 def file_upload():
     db = Database()
     if request.method == 'POST':
-        with open('body.png', 'wb') as f:
-            f.write(request.data)
-        db.cur.execute("UPDATE notes SET image = %s WHERE note_id = 1", (request.data, ))
+        #with open('body.png', 'wb') as f:
+        #    f.write(request.data)
+        # add image to most recent note
+        db.cur.execute("SELECT note_id FROM notes order by note_id desc limit 1;")
+        note_id = db.cur.fetchall()[0]['note_id']
+        db.cur.execute("UPDATE notes SET image = %s WHERE note_id = %s", (request.data, note_id))
         db.con.commit()
-        print('file upload request')
+        print('image file uploaded')
     return make_response('uploaded', 200)
 
-@app.route('/last')
-def last_saved():
+@app.route('/image')
+def view_image():
     db = Database()
-    db.cur.execute("SELECT image FROM notes WHERE note_id = 1")
+    db.cur.execute("SELECT image FROM notes WHERE note_id = 3")
     image = db.cur.fetchall()[0]['image']
     image = image[22:]
     img_io = BytesIO(b64decode(image))

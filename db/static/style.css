@@ -46,6 +46,12 @@ textarea{
   max-width: 40%;
 }
 
+.notes img{
+  float: none;
+  min-width: 100px;
+  max-width: 300px;
+}
+
 /* Message box for system messages */
 .msg-box {
   margin-top: 20px;
