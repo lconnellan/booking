@@ -614,8 +614,8 @@ def appointment_notes_add(booking_id):
     client = client_name['name'] + ' ' + client_name['surname']
     if request.method == 'POST':
         db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
-                       booking_id) VALUES(%s, NULL, NOW(), %s, %s, %s)", (request.form['note'],\
-                       bookings['client_id'], bookings['prac_id'], booking_id))
+                       booking_id) VALUES(%s, %s, NOW(), %s, %s, %s)", (request.form['note'],\
+                       request.form['img'], bookings['client_id'], bookings['prac_id'], booking_id))
         db.con.commit()
         return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', bookings=bookings, client=client)
@@ -654,20 +654,6 @@ def block_periods():
 def draw():
     return render_template('draw.html')
 
-@app.route('/file_upload', methods=['GET', 'POST'])
-def file_upload():
-    db = Database()
-    if request.method == 'POST':
-        #with open('body.png', 'wb') as f:
-        #    f.write(request.data)
-        # add image to most recent note
-        db.cur.execute("SELECT note_id FROM notes order by note_id desc limit 1;")
-        note_id = db.cur.fetchall()[0]['note_id']
-        db.cur.execute("UPDATE notes SET image = %s WHERE note_id = %s", (request.data, note_id))
-        db.con.commit()
-        print('image file uploaded')
-    return make_response('uploaded', 200)
-
 @app.route('/image')
 def view_image():
     db = Database()
@@ -676,3 +662,7 @@ def view_image():
     image = image[22:]
     img_io = BytesIO(b64decode(image))
     return send_file(img_io, mimetype='image/png');
+
+@app.route('/text')
+def text():
+    return render_template('ed.html')

@@ -243,6 +243,27 @@ textarea{
   font-size: 40px;
 }
 
+/* quill css */
+div.ql-toolbar {
+	background: #eee;
+}
+span.ql-formats {
+	background: #f7f7f7;
+}
+span.edit-wrap, div.edit-wrap {
+	width: 700px;
+}
+.ql-editor h2, .edit-wrap h2{
+	margin-bottom: 10px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+	border-bottom-width: 1px;
+	border-right-style: solid;
+	border-right-color: black;
+	border-right-width: 1px;
+	background: #f9f9f9;
+}
+
 .dropdown {
   display: inline-block;
   position: relative

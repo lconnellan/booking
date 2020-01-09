@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Appointment Notes{% endblock %}
+{% block head %}
+
+{% endblock %}
 
 {% block main %}
   <div class="main">
@@ -16,7 +19,7 @@
           </tr>
           {% for i in range(0, notes|length) %}
             <tr>
-              <td> {{ notes[i]['note'] }} </td>
+              <td> <div class="edit-wrap"> {{ notes[i]['note'].decode("ascii")|safe }} </div></td>
               <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
               <td> {{ notes[i]['timestamp'] }} </td>
             </tr>
