@@ -61,13 +61,16 @@ CREATE TABLE if not exists bookings (
   booking_id SERIAL PRIMARY KEY,
   prac_id BIGINT UNSIGNED NOT NULL,
   client_id BIGINT UNSIGNED NOT NULL,
+  treat_id BIGINT UNSIGNED NOT NULL,
   room_id BIGINT UNSIGNED NOT NULL,
   name DATE NOT NULL,
   start TIME NOT NULL,
   end TIME NOT NULL,
   price DECIMAL(18,2) NOT NULL,
+  pay_status ENUM('not paid', 'cash', 'invoice', 'insurance') NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
+  FOREIGN KEY (treat_id) REFERENCES treatments(treat_id),
   FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
 
@@ -90,9 +93,9 @@ BEGIN
 END; //
 DELIMITER ;
 
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, room_id, name, start, end, price)
-VALUES(1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 30.00),
-(2, 1, 2, 2, '2019-12-16', '9:30', '10:30', 40.00);
+INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, room_id, name, start, end, price, pay_status)
+VALUES(1, 1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 40.00, 'not paid'),
+(2, 1, 2, 2, 2, '2019-12-16', '9:30', '10:30', 30.00, 'cash');
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
@@ -175,5 +178,3 @@ CREATE TABLE if not exists notes (
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 );
-
-/*INSERT IGNORE INTO notes (note_id, note, image, timestamp, client_id, prac_id, booking_id) VALUES (1, LOAD_FILE('/export/wynberg/lloyd/note.txt'), NULL, NOW(), 1, 1, 1);*/

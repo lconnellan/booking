@@ -585,7 +585,13 @@ def my_appointments():
                          in the table depends upon it.'
                 return redirect(url_for('error', error=error))
             return redirect(url_for('my_appointments'))
-        if 'view' in request.form:
+        elif 'payment' in request.form:
+            pay_status = 'pay_status' + request.form['payment']
+            db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
+                           (request.form[pay_status], request.form['payment']) )
+            db.con.commit()
+            return redirect(url_for('my_appointments'))
+        elif 'view' in request.form:
             return redirect(url_for('appointment_notes', booking_id=request.form['view']))
     return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
                            named_keys=res[2], access_lvl=session['access_lvl'])

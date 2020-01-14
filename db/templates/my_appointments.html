@@ -2,7 +2,11 @@
 {% block title %}My Appointments{% endblock %}
 
 {% block main %}
-  <div class="main">
+  {% macro capitalize(text) %}
+      {{ text[0]|upper}}{{text[1:] }}
+  {% endmacro %}
+
+  <div class="main" style="overflow-x:auto;">
     <h2>List of all your appointments</h2>
     <form method="POST">
       <table id="appointments"><tbody>
@@ -10,19 +14,23 @@
           <tr>
             <th>Practitioner</th>
             <th>Client</th>
+            <th>Appointment Type</th>
             <th>Room</th>
             <th>Date</th>
             <th>Start</th>
             <th>End</th>
-            <th>Price</th>
+            <th>Price (£)</th>
             {% if access_lvl == 2 %}
+              <th>Payment Status</th>
               <th>Notes</th>
+              <th>Submit Changes</th>
+              <th>Delete Row</th>
             {% endif %}
           </tr>
           {% for row in bookings %}
             <tr>
               {% for field in row %}
-                {% if field != 'notes' %}
+                {% if field != 'notes' and field != 'pay_status' %}
                   {% if col_type[field] != 'auto' %}
                     {% if col_type[field] == 'foreign' %}
                       <td>{{ named_keys[field][row[field]] }}</td>
@@ -33,7 +41,19 @@
                 {% endif %}
               {% endfor %}
               {% if access_lvl == 2 %}
+                {% set statuses = ['not paid', 'cash', 'invoice', 'insurance'] %}
+                <td>
+                  <select name="{{"pay_status"+row['booking_id']|string}}">
+                    <option value="{{row['pay_status']}}">{{ capitalize(row['pay_status']) }}</option>
+                    {% for status in statuses %}
+                      {% if status != row['pay_status'] %}
+                        <option value="{{status}}">{{ capitalize(status) }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </td>
                 <td><button type="submit" name="view" value="{{row['booking_id']}}"> View Notes </button></td>
+                <td><button type="submit" name="payment" value="{{row['booking_id']}}"> Submit </button></td>
               {% endif %}
               {% if access_lvl == 2 %}
                 {% for field in row %}
