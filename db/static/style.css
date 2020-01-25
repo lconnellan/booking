@@ -301,9 +301,11 @@ span.edit-wrap, div.edit-wrap {
   color: #6698b5;
 }
 
+/*
 .dropdown:hover .dropdown-content {
   display: block;
 }
+*/
 
 /* Style for tables */
 table {

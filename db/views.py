@@ -315,6 +315,8 @@ def tables_add(table):
                     else:
                         fieldnames += ', ' + fieldname
                         values += ', ' + value
+            query = "INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values)
+            print(query)
             db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
             db.con.commit()
             return redirect(url_for('tables', table=table))

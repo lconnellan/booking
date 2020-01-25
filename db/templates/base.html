@@ -6,48 +6,49 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="shortcut icon" href="../static/pics/favicon.ico"/>
   {% block head %}{% endblock %}
+  <script>
+    var currentMenu=null;
+  </script>
 </head>
 
 <body>
-  <form method="POST">
-    <div class="topnav">
-      FRAMEWORK LIVINGSTON
-      <a href="{{ url_for('index') }}">Home</a> <br>
-      <div class="dropdown">
-        <a href="{{ url_for('osteopathy') }}">About</a>
-        <div class="dropdown-content">
-          <a href="{{ url_for('osteopathy') }}">What is Osteopathy</a>
-          <a href="{{ url_for('what_to_expect') }}">What to Expect</a>
-          <a href="{{ url_for('our_team') }}">Our Team</a>
-          <a href="{{ url_for('faq') }}">FAQ</a>
-        </div>
+  <div class="topnav">
+    FRAMEWORK LIVINGSTON
+    <a href="{{ url_for('index') }}">Home</a> <br>
+    <div class="dropdown">
+      <a href="javascript:showMenu('about');">About</a>
+      <div id='about' class="dropdown-content">
+        <a href="{{ url_for('osteopathy') }}">What is Osteopathy</a>
+        <a href="{{ url_for('what_to_expect') }}">What to Expect</a>
+        <a href="{{ url_for('our_team') }}">Our Team</a>
+        <a href="{{ url_for('faq') }}">FAQ</a>
       </div>
-      <div class="dropdown">
-        <a href="{{ url_for('treatments') }}">Appointments</a>
-        <div class="dropdown-content">
-          <a href="{{ url_for('treatments') }}">Book a Session</a>
-          <a href="{{ url_for('my_appointments') }}">My Appointments</a>
-          <a href="{{ url_for('contact') }}">Contact</a>
-          <a href="{{ url_for('prices') }}">Prices</a>
-        </div>
-      </div>
-      {% if session['email'] %}
-        {% if session['access_lvl'] == 2 %}
-          <div class="dropdown">
-            <a href="{{ url_for('database') }}">Administration</a>
-            <div class="dropdown-content">
-              <a href="{{ url_for('database') }}">Database</a>
-              <a href="{{ url_for('block_periods') }}">Block Periods</a>
-            </div>
-          </div>
-        {% endif %}
-        <a href="{{ url_for('logout', next=request.path[1:]) }}">Log out</a>
-      {% endif %}
-      {% if not 'email' in session %}
-        <a href="{{ url_for('login', next=request.path[1:]) }}">Log in</a>
-      {% endif %}
     </div>
-  </form>
+    <div class="dropdown">
+      <a href="javascript:showMenu('appointments');">Appointments</a>
+      <div id='appointments' class="dropdown-content">
+        <a href="{{ url_for('treatments') }}">Book a Session</a>
+        <a href="{{ url_for('my_appointments') }}">My Appointments</a>
+        <a href="{{ url_for('contact') }}">Contact</a>
+        <a href="{{ url_for('prices') }}">Prices</a>
+      </div>
+    </div>
+    {% if session['email'] %}
+      {% if session['access_lvl'] == 2 %}
+        <div class="dropdown">
+          <a href="javascript:showMenu('admin');">Admin</a>
+          <div id='admin' class="dropdown-content">
+            <a href="{{ url_for('database') }}">Database</a>
+            <a href="{{ url_for('block_periods') }}">Block Periods</a>
+          </div>
+        </div>
+      {% endif %}
+      <a href="{{ url_for('logout', next=request.path[1:]) }}">Log out</a>
+    {% endif %}
+    {% if not 'email' in session %}
+      <a href="{{ url_for('login', next=request.path[1:]) }}">Log in</a>
+    {% endif %}
+  </div>
   <div class="msg-box">
     {% if msg %}
       <strong>{{ msg }}</strong>
@@ -60,6 +61,27 @@
       {% endif %}
     {% endwith %}
   </div>
+
+  <script>
+    function showMenu(id){
+      if (currentMenu != null) {
+           var toClose = document.getElementById(currentMenu);
+           if (toClose) {
+                toClose.style.display = 'none';
+           }
+      }
+      if(currentMenu != id) {
+      var toOpen = document.getElementById(id);
+        if (toOpen) {
+          toOpen.style.display = 'block';
+          currentMenu = id;
+        }
+      }
+      else {
+        currentMenu = null;
+      }
+    }
+  </script>
 
 {% block main %}{% endblock %}
 </body>
