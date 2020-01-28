@@ -30,7 +30,7 @@
           {% for row in bookings %}
             <tr>
               {% for field in row %}
-                {% if field != 'notes' and field != 'pay_status' %}
+                {% if field != 'notes' and field != 'pay_status' and field != 'price' %}
                   {% if col_type[field] != 'auto' %}
                     {% if col_type[field] == 'foreign' %}
                       <td>{{ named_keys[field][row[field]] }}</td>
@@ -41,6 +41,9 @@
                 {% endif %}
               {% endfor %}
               {% if access_lvl == 2 %}
+                <td>
+                  <input type="number" name={{"price"+row['booking_id']|string}} min="0" value="{{row['price']}}" max='999'>
+                </td>
                 {% set statuses = ['not paid', 'cash', 'invoice', 'insurance'] %}
                 <td>
                   <select name="{{"pay_status"+row['booking_id']|string}}">
@@ -53,7 +56,9 @@
                   </select>
                 </td>
                 <td><button type="submit" name="view" value="{{row['booking_id']}}"> View Notes </button></td>
-                <td><button type="submit" name="payment" value="{{row['booking_id']}}"> Submit </button></td>
+                <td><button type="submit" name="submit" value="{{row['booking_id']}}"> Submit </button></td>
+              {% else %}
+                <td>{{ row['price'] }}</td>
               {% endif %}
               {% if access_lvl == 2 %}
                 {% for field in row %}

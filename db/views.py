@@ -512,6 +512,13 @@ def confirmation():
                            + session['date'] + "', '" + session['time_slot'] + "', '" \
                            + session['end'] + "', " + session['price'] + ");")
             db.con.commit()
+
+            # send email reminder
+            #msg = Message("Booking reminder - Framework Livingston", \
+            #              sender=app.config.get('MAIL_USERNAME'), recipients=[email])
+            #msg.html = render_template('reminder.html')
+            #mail.send(msg)
+
             return redirect(url_for('completed'))
         elif request.form['answer'] == "cancel":
             return redirect(url_for('index'))
@@ -587,10 +594,13 @@ def my_appointments():
                          in the table depends upon it.'
                 return redirect(url_for('error', error=error))
             return redirect(url_for('my_appointments'))
-        elif 'payment' in request.form:
-            pay_status = 'pay_status' + request.form['payment']
+        elif 'submit' in request.form:
+            pay_status = 'pay_status' + request.form['submit']
             db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
-                           (request.form[pay_status], request.form['payment']) )
+                           (request.form[pay_status], request.form['submit']) )
+            price = 'price' + request.form['submit']
+            db.cur.execute("UPDATE bookings SET price = %s WHERE booking_id = %s", \
+                           (request.form[price], request.form['submit']) )
             db.con.commit()
             return redirect(url_for('my_appointments'))
         elif 'view' in request.form:
@@ -658,10 +668,6 @@ def block_periods():
             return redirect(url_for('block_periods'))
     return render_template('block_periods.html', blocked=blocked)
 
-@app.route('/draw', methods=['GET', 'POST'])
-def draw():
-    return render_template('draw.html')
-
 @app.route('/image')
 def view_image():
     db = Database()
@@ -671,6 +677,6 @@ def view_image():
     img_io = BytesIO(b64decode(image))
     return send_file(img_io, mimetype='image/png');
 
-@app.route('/text')
-def text():
-    return render_template('ed.html')
+@app.route('/pdf')
+def pdf():
+    return render_template('pdf.html')

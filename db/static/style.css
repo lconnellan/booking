@@ -46,6 +46,10 @@ textarea{
   max-width: 40%;
 }
 
+.main input[type=number]{
+    width: 40px;
+}
+
 .notes img{
   float: none;
   min-width: 100px;
@@ -300,12 +304,6 @@ span.edit-wrap, div.edit-wrap {
   background-color: #0065a3;
   color: #6698b5;
 }
-
-/*
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-*/
 
 /* Style for tables */
 table {

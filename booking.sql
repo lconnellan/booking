@@ -47,6 +47,8 @@ TRUNCATE treatments;
 INSERT IGNORE INTO treatments (treat_id, name, room_type_id, price, duration)
 VALUES(1, 'First appointment', 1, 55.00, 1.00),
 (2, 'Follow-up appointment', 1, 45.00, 0.30);
+(3, 'Infant first appointment', 1, 65.00, 0.30);
+(4, 'Infant Follow-up appointment', 1, 55.00, 0.30);
 
 CREATE TABLE if not exists rooms (
   room_id SERIAL PRIMARY KEY,
