@@ -331,11 +331,12 @@ def treatments():
     # create treatment links
     if request.method == 'POST':
         session['treatment'] = request.form['type']
-        db.cur.execute("SELECT duration, price FROM treatments where \
+        db.cur.execute("SELECT treat_id, duration, price FROM treatments where \
                        name = %s", (session['treatment'], ))
-        res = [[entry['duration'], entry['price']] for entry in db.cur.fetchall()][0]
-        session['duration'] = str(res[0])
-        session['price'] = str(res[1])
+        res = db.cur.fetchall()[0]
+        session['duration'] = str(res['duration'])
+        session['price'] = str(res['price'])
+        session['treat_id'] = str(res['treat_id'])
         return redirect(url_for('dates'))
     return render_template('treatments.html', treatments=treatments)
 
@@ -506,18 +507,12 @@ def confirmation():
                 client_id = session['client_id_tmp']
                 session.pop('client_id_tmp')
             room_id = session['prac_id'] # assumed each prac has own room for now
-            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, room_id, name, \
-                           start, end, price) VALUES(" + str(session['prac_id']) \
-                           + ", " + str(client_id) + ", " + str(room_id) + ", '" \
-                           + session['date'] + "', '" + session['time_slot'] + "', '" \
-                           + session['end'] + "', " + session['price'] + ");")
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, \
+                           room_id, name, start, end, price, pay_status) VALUES(%s, %s, %s, %s, \
+                           %s, %s, %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
+                           str(session['treat_id']), str(room_id), session['date'], \
+                           session['time_slot'], session['end'], session['price']))
             db.con.commit()
-
-            # send email reminder
-            #msg = Message("Booking reminder - Framework Livingston", \
-            #              sender=app.config.get('MAIL_USERNAME'), recipients=[email])
-            #msg.html = render_template('reminder.html')
-            #mail.send(msg)
 
             return redirect(url_for('completed'))
         elif request.form['answer'] == "cancel":
