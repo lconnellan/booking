@@ -14,32 +14,42 @@
   <div class="main">
     <h2>Adding note for appointment on {{bookings['name']}} with {{client}}</h2>
     <h3>Note entry</h3>
-    <div class="edit-wrap">
-      <div id="editor">
-        <h3>Patient Details</h3>
-        <p><br/></p>
-        <h3>Symptom</h3>
-        <p><br/></p>
-        <h3>Diagnosis</h3>
-        <p><br/></p>
-        <h3>Treatment</h3>
-        <p><br/></p>
+    {% if draft %}
+      <div class="edit-wrap">
+        <div id=editor>{{ draft.decode("ascii")|safe }}</div>
       </div>
-    </div>
+    {% else %}
+      <div class="edit-wrap">
+        <div id="editor">
+          <h3>Patient Details</h3>
+          <p><br/></p>
+          <h3>Symptom</h3>
+          <p><br/></p>
+          <h3>Diagnosis</h3>
+          <p><br/></p>
+          <h3>Treatment</h3>
+          <p><br/></p>
+        </div>
+      </div>
+    {% endif %}
     <h3>Add diagram</h3>
-    <div id="my-drawing"></div>
-    <form name="form1" method="POST">
-      <input type="hidden" id="note" name="note"/>
+    <div id="drawing"></div>
+    <form name="form_draft" method="POST">
+      <input type="hidden" id="note_draft" name="note_draft"/>
+    </form>
+    <form name="form_final" method="POST">
+      <input type="hidden" id="note_final" name="note_final"/>
       <input type="hidden" id="img" name="img"/>
     </form>
-    <br><button onClick="upload_file();"> Submit </button>
+    <br><button onClick="save_draft();"> Save Draft </button>
+    <button onClick="upload_file();"> Submit </button>
   </div>
 
   <script>
     var bodyImg = document.createElement("IMG");
     bodyImg.src = "/static/pics/body.png";
-    lc = LC.init(
-      document.getElementById('my-drawing'),
+    var lc = LC.init(
+      document.getElementById('drawing'),
       {imageURLPrefix: '/static/pics/literallycanvas',
        backgroundShapes: [
           LC.createShape(
@@ -47,12 +57,27 @@
            )
        ]}
     );
+    var localStorageKey = 'drawing'
+    if (localStorage.getItem(localStorageKey)) {
+      lc.loadSnapshot(JSON.parse(localStorage.getItem(localStorageKey)));
+    }
+    lc.on('drawingChange', function() {
+      localStorage.setItem(localStorageKey, JSON.stringify(lc.getSnapshot()));
+    });
+
+    function save_draft(){
+      var note=document.getElementById('editor').children[0];
+      document.getElementById('note_draft').value = note.innerHTML;
+      document.form_draft.submit();
+    };
     function upload_file(){
       var note=document.getElementById('editor').children[0];
-      document.getElementById('note').value = note.innerHTML;
+      document.getElementById('note_final').value = note.innerHTML;
       var blob = lc.getImage().toDataURL();
       document.getElementById('img').value = blob;
-      document.form1.submit();
+      document.form_final.submit();
+      lc.clear()
+      localStorage.setItem(localStorageKey, JSON.stringify(lc.getSnapshot()));
     };
     let BlockEmbed = Quill.import('blots/block/embed');
     class DividerBlot extends BlockEmbed {

@@ -608,7 +608,7 @@ def my_appointments():
 @auth_required(level=2)
 def appointment_notes(booking_id):
     db = Database()
-    db.cur.execute("SELECT * FROM notes where notes.booking_id = %s" % booking_id)
+    db.cur.execute("SELECT * FROM notes WHERE notes.booking_id = %s AND draft = 0" % booking_id)
     notes = db.cur.fetchall()
     res = db.list_table('notes')
     if 'add' in request.form:
@@ -624,15 +624,33 @@ def appointment_notes_add(booking_id):
     bookings = db.cur.fetchall()[0]
     db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s" \
                    % bookings['client_id'])
-    client_name = db.cur.fetchall()[0]
-    client = client_name['name'] + ' ' + client_name['surname']
+    res = db.cur.fetchall()[0]
+    client = res['name'] + ' ' + res['surname']
+    db.cur.execute("SELECT * FROM notes WHERE booking_id = %s AND draft = 1" % booking_id)
+    try:
+        draft = db.cur.fetchall()[0]['note']
+    except:
+        draft = ''
     if request.method == 'POST':
-        db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
-                       booking_id) VALUES(%s, %s, NOW(), %s, %s, %s)", (request.form['note'],\
-                       request.form['img'], bookings['client_id'], bookings['prac_id'], booking_id))
-        db.con.commit()
-        return redirect(url_for('appointment_notes', booking_id=booking_id))
-    return render_template('appointment_notes_add.html', bookings=bookings, client=client)
+        if 'note_draft' in request.form:
+            db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
+                           booking_id, draft) VALUES(%s, NULL, NOW(), %s, %s, %s, 1)", \
+                           (request.form['note_draft'], bookings['client_id'], bookings['prac_id'], \
+                           booking_id))
+            db.con.commit()
+            flash('Draft saved')
+            return redirect(url_for('appointment_notes', booking_id=booking_id))
+        if 'note_final' in request.form:
+            db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
+                           booking_id, draft) VALUES(%s, %s, NOW(), %s, %s, %s, 0)", \
+                           (request.form['note_final'], request.form['img'], bookings['client_id'], \
+                           bookings['prac_id'], booking_id))
+            db.con.commit()
+            db.cur.execute("DELETE FROM notes WHERE draft = 1")
+            db.con.commit()
+            return redirect(url_for('appointment_notes', booking_id=booking_id))
+    return render_template('appointment_notes_add.html', bookings=bookings, client=client, \
+                           draft=draft)
 
 @app.route('/client_note', methods=['GET', 'POST'])
 @auth_required(level=2)

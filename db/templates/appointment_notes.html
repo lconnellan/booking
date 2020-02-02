@@ -20,7 +20,11 @@
           {% for i in range(0, notes|length) %}
             <tr>
               <td> <div class="edit-wrap"> {{ notes[i]['note'].decode("ascii")|safe }} </div></td>
-              <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
+              {% if notes[i]['image'] %}
+                <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
+              {% else %}
+                <td> </td>
+              {% endif %}
               <td> {{ notes[i]['timestamp'] }} </td>
             </tr>
           {% endfor %}

@@ -158,6 +158,7 @@ CREATE TABLE if not exists notes (
   client_id BIGINT UNSIGNED NOT NULL,
   prac_id BIGINT UNSIGNED NOT NULL,
   booking_id BIGINT UNSIGNED,
+  draft BOOLEAN NOT NULL,
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)

@@ -52,12 +52,12 @@
   </div>
   <div class="msg-box">
     {% if msg %}
-      <strong>{{ msg }}</strong>
+      <i><h2>{{ msg }}</h2></i>
     {% endif %}
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for message in messages %}
-          {{ message }}
+          <i><h2>{{ message }}</h2></i>
         {% endfor %}
       {% endif %}
     {% endwith %}
