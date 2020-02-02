@@ -16,7 +16,8 @@ CREATE TABLE if not exists clients (
 );
 INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
 VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
-(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT');
+(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT'),
+(3, 'Lloyd', 'Connellan', '1992-04-29', '038585857530', NULL, '13 Wild Rise', NULL, NULL, 'Cuckfield', NULL, 'RG56 LFK');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
@@ -28,43 +29,24 @@ INSERT IGNORE INTO practitioners (prac_id, name, surname, phone)
 VALUES(1, 'Wesley', 'Connellan', '030587598479'),
 (2, 'Ellie', 'Gorham', '0338236893462');
 
-CREATE TABLE if not exists room_types (
-  room_type_id SERIAL PRIMARY KEY,
-  name VARCHAR(150) NOT NULL
-);
-INSERT IGNORE INTO room_types (room_type_id, name)
-VALUES(1, 'General room');
-
 CREATE TABLE if not exists treatments (
   treat_id SERIAL PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
-  room_type_id BIGINT UNSIGNED NOT NULL,
   price DECIMAL(18,2) NOT NULL,
-  duration DECIMAL(18,2) NOT NULL,
-  FOREIGN KEY (room_type_id) REFERENCES room_types(room_type_id)
+  duration DECIMAL(18,2) NOT NULL
 );
 TRUNCATE treatments;
-INSERT IGNORE INTO treatments (treat_id, name, room_type_id, price, duration)
-VALUES(1, 'First appointment', 1, 55.00, 1.00),
-(2, 'Follow-up appointment', 1, 45.00, 0.30);
-(3, 'Infant first appointment', 1, 65.00, 0.30);
-(4, 'Infant Follow-up appointment', 1, 55.00, 0.30);
-
-CREATE TABLE if not exists rooms (
-  room_id SERIAL PRIMARY KEY,
-  name VARCHAR(80) NOT NULL,
-  room_type_id BIGINT UNSIGNED NOT NULL,
-  FOREIGN KEY (room_type_id) REFERENCES room_types(room_type_id)
-);
-INSERT IGNORE INTO rooms (room_id, name, room_type_id)
-VALUES(1, 'Room 1', 1), (2, 'Room 2', 1);
+INSERT IGNORE INTO treatments (treat_id, name, price, duration)
+VALUES(1, 'First appointment', 55.00, 1.00),
+(2, 'Follow-up appointment', 45.00, 0.30),
+(3, 'Infant first appointment', 65.00, 0.30),
+(4, 'Infant Follow-up appointment', 55.00, 0.30);
 
 CREATE TABLE if not exists bookings (
   booking_id SERIAL PRIMARY KEY,
   prac_id BIGINT UNSIGNED NOT NULL,
   client_id BIGINT UNSIGNED NOT NULL,
   treat_id BIGINT UNSIGNED NOT NULL,
-  room_id BIGINT UNSIGNED NOT NULL,
   name DATE NOT NULL,
   start TIME NOT NULL,
   end TIME NOT NULL,
@@ -72,8 +54,7 @@ CREATE TABLE if not exists bookings (
   pay_status ENUM('not paid', 'cash', 'invoice', 'insurance') NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
-  FOREIGN KEY (treat_id) REFERENCES treatments(treat_id),
-  FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+  FOREIGN KEY (treat_id) REFERENCES treatments(treat_id)
 );
 
 DELIMITER //
@@ -84,7 +65,7 @@ BEFORE INSERT
 BEGIN
   DECLARE vCnt INT ;
   SELECT COUNT(*) INTO vCnt FROM bookings
-  WHERE (prac_id = NEW.prac_id OR room_id = NEW.room_id)
+  WHERE (prac_id = NEW.prac_id)
   AND name = NEW.name
   AND ((start <= NEW.start AND end > NEW.start)
   OR (start >= NEW.start AND start < NEW.end));
@@ -95,9 +76,9 @@ BEGIN
 END; //
 DELIMITER ;
 
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, room_id, name, start, end, price, pay_status)
-VALUES(1, 1, 1, 1, 1, '2019-12-17', '10:30', '11:00', 40.00, 'not paid'),
-(2, 1, 2, 2, 2, '2019-12-16', '9:30', '10:30', 30.00, 'cash');
+INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, price, pay_status)
+VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 40.00, 'not paid'),
+(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', 30.00, 'cash');
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
@@ -166,7 +147,8 @@ CREATE TABLE if not exists users (
 
 INSERT IGNORE INTO users (user_id, email, password, access_lvl, client_id, prac_id)
 VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1),
-(2, 'john.doe@gmail.com', MD5('user'), 0, 1, NULL);
+(2, 'john.doe@gmail.com', MD5('user'), 0, 1, NULL),
+(3, 'lloyd.connellan@gmail.com', MD5('lasagna'), 0, 3, NULL);
 
 CREATE TABLE if not exists notes (
   note_id SERIAL PRIMARY KEY,

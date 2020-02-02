@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Client Notes{% endblock %}
+{% block head %}
+
+{% endblock %}
+
+{% block main %}
+  <div class="main">
+    {% if notes %}
+      <h2>Appointment notes for {{named_keys['client_id'][notes[0]['client_id']]}}</h2>
+      <div class="notes">
+      <table id="notes"><tbody>
+        <tr>
+          <th>Note</th>
+          <th>Image</th>
+          <th>Timestamp</th>
+        </tr>
+        {% for i in range(0, notes|length) %}
+          <tr>
+            <td> <div class="edit-wrap"> {{ notes[i]['note'].decode("ascii")|safe }} </div></td>
+            <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
+            <td> {{ notes[i]['timestamp'] }} </td>
+          </tr>
+        {% endfor %}
+      </tbody></table>
+      </div>
+    {% else %}
+      <h2>No notes for selected client.</h2>
+    {% endif %}
+  </div>
+{% endblock %}

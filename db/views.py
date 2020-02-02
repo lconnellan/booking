@@ -266,7 +266,7 @@ def reset_confirmation(key):
 @auth_required(level=2)
 def database():
     db = Database()
-    db.cur.execute("SHOW TABLES")
+    db.cur.execute("SHOW TABLES WHERE tables_in_booking NOT LIKE 'notes'")
     res = db.cur.fetchall()
     return render_template('database.html', result=res)
 
@@ -506,12 +506,11 @@ def confirmation():
             else:
                 client_id = session['client_id_tmp']
                 session.pop('client_id_tmp')
-            room_id = session['prac_id'] # assumed each prac has own room for now
-            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, \
-                           room_id, name, start, end, price, pay_status) VALUES(%s, %s, %s, %s, \
-                           %s, %s, %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
-                           str(session['treat_id']), str(room_id), session['date'], \
-                           session['time_slot'], session['end'], session['price']))
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name, \
+                           start, end, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, %s, \
+                           'not paid')", (str(session['prac_id']), str(client_id), \
+                           str(session['treat_id']), session['date'], session['time_slot'], \
+                           session['end'], session['price']))
             db.con.commit()
 
             return redirect(url_for('completed'))
@@ -573,9 +572,11 @@ def my_appointments():
     client_id = res[0]['client_id']
     prac_id = res[0]['prac_id']
     if client_id == None:
-        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s" % str(prac_id))
+        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s order by name desc" \
+                       % str(prac_id))
     else:
-        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s" % str(client_id))
+        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s order by name desc" \
+                       % str(client_id))
     bookings = db.cur.fetchall()
     res = db.list_table('bookings')
     if request.method == 'POST':
@@ -632,6 +633,26 @@ def appointment_notes_add(booking_id):
         db.con.commit()
         return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', bookings=bookings, client=client)
+
+@app.route('/client_note', methods=['GET', 'POST'])
+@auth_required(level=2)
+def client_note():
+    db = Database()
+    db.cur.execute("SELECT * FROM clients")
+    clients = db.cur.fetchall()
+    if request.method == 'POST':
+        return redirect(url_for('client_notes_view', client_id=request.form['client_id']))
+    return render_template('client_note.html', clients=clients)
+
+@app.route('/client_notes/<client_id>')
+@auth_required(level=2)
+def client_notes_view(client_id):
+    db = Database()
+    db.cur.execute("SELECT * FROM notes where notes.client_id = %s" % client_id)
+    notes = db.cur.fetchall()
+    res = db.list_table('notes')
+    return render_template('client_notes_view.html', notes=notes, col_type=res[1], \
+                           named_keys=res[2])
 
 @app.route('/block_periods', methods=['GET', 'POST'])
 @auth_required(level=2)

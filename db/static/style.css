@@ -257,7 +257,7 @@ span.ql-formats {
 span.edit-wrap, div.edit-wrap {
 	width: 700px;
 }
-.ql-editor h2, .edit-wrap h2{
+.ql-editor h3, .edit-wrap h3{
 	margin-bottom: 10px;
 	border-bottom-style: solid;
 	border-bottom-color: black;

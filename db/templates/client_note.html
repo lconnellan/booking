@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Client Notes{% endblock %}
+
+{% block main %}
+  <div class="main" style="overflow-x:auto;">
+    <h2>Please select a client whose note history you wish to view.</h2>
+    <form method="POST">
+      <select name='client_id'>
+        {% for client in clients %}
+          <option value="{{client['client_id']}}">{{client['name'] + " " + client['surname']}}</option>
+        {% endfor %}
+      </select>
+      <button> Submit </button>
+    </form>
+  </div>
+{% endblock %}
