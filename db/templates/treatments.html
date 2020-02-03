@@ -6,8 +6,10 @@
     <h2>Please choose a treatment.</h2>
     <form method="POST">
       {% if treatments %}
-        {% for t in treatments %}
-          <button type="submit" name="type" value='{{t}}'> {{t}} </button>
+        {% for i in range(0, treatments|length) %}
+          <button type="submit" name="type" value='{{treatments[i]['name']}}'>
+          {{treatments[i]['name']}} </button> &nbsp; {{ time[i] + ' - £'
+          + treatments[i]['price']|string }} <br>
         {% endfor %}
       {% endif %}
     </form>

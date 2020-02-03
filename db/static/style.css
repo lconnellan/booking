@@ -7,11 +7,8 @@ body {
 .mySlides {display: none}
 img {vertical-align: middle;}
 
-
 textarea{
     display: block;
-    width: 300px;
-    height: 300px;
 }
 
 /* Margins for main part of page */

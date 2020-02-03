@@ -39,7 +39,7 @@ TRUNCATE treatments;
 INSERT IGNORE INTO treatments (treat_id, name, price, duration)
 VALUES(1, 'First appointment', 55.00, 1.00),
 (2, 'Follow-up appointment', 45.00, 0.30),
-(3, 'Infant first appointment', 65.00, 0.30),
+(3, 'Infant first appointment', 65.00, 1.00),
 (4, 'Infant Follow-up appointment', 55.00, 0.30);
 
 CREATE TABLE if not exists bookings (
@@ -48,6 +48,7 @@ CREATE TABLE if not exists bookings (
   client_id BIGINT UNSIGNED NOT NULL,
   treat_id BIGINT UNSIGNED NOT NULL,
   name DATE NOT NULL,
+  descr VARCHAR(50) NOT NULL,
   start TIME NOT NULL,
   end TIME NOT NULL,
   price DECIMAL(18,2) NOT NULL,
@@ -76,9 +77,9 @@ BEGIN
 END; //
 DELIMITER ;
 
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, price, pay_status)
-VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 40.00, 'not paid'),
-(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', 30.00, 'cash');
+INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, descr, price, pay_status)
+VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 'arm pain', 40.00, 'not paid'),
+(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', NULL, 30.00, 'cash');
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,

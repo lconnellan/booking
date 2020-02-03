@@ -326,8 +326,22 @@ def tables_add(table):
 def treatments():
     db = Database()
     # fetch list of treatments
-    db.cur.execute("SELECT name FROM treatments")
-    treatments = [entry['name'] for entry in db.cur.fetchall()]
+    db.cur.execute("SELECT * FROM treatments")
+    treatments = db.cur.fetchall()
+    time = []
+    for t in treatments:
+        hours = int(t['duration'])
+        mins = int((t['duration'] - int(t['duration']))*100)
+        t = ''
+        if hours >= 2:
+            t += str(hours) + ' hours'
+        elif hours >= 1:
+            t += str(hours) + ' hour'
+        if mins > 0 and hours != 0:
+            t += ', ' + str(mins) + ' minutes'
+        elif hours == 0:
+            t += str(mins) + ' minutes'
+        time.append(t)
     # create treatment links
     if request.method == 'POST':
         session['treatment'] = request.form['type']
@@ -338,7 +352,7 @@ def treatments():
         session['price'] = str(res['price'])
         session['treat_id'] = str(res['treat_id'])
         return redirect(url_for('dates'))
-    return render_template('treatments.html', treatments=treatments)
+    return render_template('treatments.html', treatments=treatments, time=time)
 
 def datetime_range(start, end, delta):
     """Generator function for time range"""
@@ -506,11 +520,11 @@ def confirmation():
             else:
                 client_id = session['client_id_tmp']
                 session.pop('client_id_tmp')
-            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name, \
-                           start, end, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, %s, \
-                           'not paid')", (str(session['prac_id']), str(client_id), \
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name,\
+                           start, end, descr, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, \
+                           %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
                            str(session['treat_id']), session['date'], session['time_slot'], \
-                           session['end'], session['price']))
+                           session['end'], request.form['descr'], session['price']))
             db.con.commit()
 
             return redirect(url_for('completed'))
@@ -522,11 +536,11 @@ def confirmation():
 @auth_required(level=2)
 def client_choice():
     db = Database()
-    db.cur.execute("SELECT name, surname, client_id FROM clients")
+    db.cur.execute("SELECT name, surname, client_id FROM clients ORDER BY surname")
     res = db.cur.fetchall()
     clients = [[entry['name'] + ' '  + entry['surname'], entry['client_id']] for entry in res]
     if request.method == 'POST':
-        res = ast.literal_eval(request.form['type'])
+        res = ast.literal_eval(request.form['client'])
         session['client_id_tmp'] = res
         return redirect(url_for('confirmation'))
     return render_template('client_choice.html', clients=clients)
