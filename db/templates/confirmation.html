@@ -5,8 +5,7 @@
   <div class="main">
     If you would like, you can provide a short description of what you would like treated (50 characters max).
     <form method="POST">
-      <textarea type='text' name='descr' rows="2" cols="30" maxlength="50">
-      </textarea>
+      <textarea type='text' name='descr' rows="2" cols="30" maxlength="50"></textarea>
       {% if session %}
         You are booking a {{session['treatment'].lower()}} on {{session['date']}} from {{session['time_slot']}} to {{session['end']}} with {{session['prac']}}. Would you like to proceed?
       {% endif %}
