@@ -18,6 +18,7 @@
             <th>Date</th>
             <th>Start</th>
             <th>End</th>
+            <th>Description</th>
             <th>Price (£)</th>
             {% if access_lvl == 2 %}
               <th>Payment Status</th>
@@ -28,17 +29,13 @@
           </tr>
           {% for row in bookings %}
             <tr>
-              {% for field in row %}
-                {% if field != 'notes' and field != 'pay_status' and field != 'price' %}
-                  {% if col_type[field] != 'auto' %}
-                    {% if col_type[field] == 'foreign' %}
-                      <td>{{ named_keys[field][row[field]] }}</td>
-                    {% else %}
-                      <td>{{ row[field] }}</td>
-                    {% endif %}
-                  {% endif %}
-                {% endif %}
-              {% endfor %}
+              <td>{{named_keys['prac_id'][row['prac_id']]}}</td>
+              <td>{{named_keys['client_id'][row['client_id']]}}</td>
+              <td>{{named_keys['treat_id'][row['treat_id']]}}</td>
+              <td>{{row['name']}}</td>
+              <td>{{row['start']}}</td>
+              <td>{{row['end']}}</td>
+              <td>{{row['descr']}}</td>
               {% if access_lvl == 2 %}
                 <td>
                   <input type="number" name={{"price"+row['booking_id']|string}} min="0" value="{{row['price']}}" max='999'>

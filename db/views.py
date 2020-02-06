@@ -70,7 +70,7 @@ class Database:
         else:
             password = res[0]['password']
         if password_in == password:
-            session['msg'] = 'Signed in.'
+            flash('Signed in.')
             session['email'] = email
             self.cur.execute("SELECT access_lvl FROM users WHERE email = %s", (email, ))
             session['access_lvl'] = self.cur.fetchall()[0]['access_lvl']
@@ -89,25 +89,20 @@ def auth_required(level=2):
         def wrapper(*args, **kwargs):
             if not 'access_lvl' in session:
                 session['error'] = 'Login is required to continue.'
-                return redirect(url_for('login', next=request.endpoint))
+                return redirect(url_for('login', next=request.path[1:]))
             elif session['access_lvl'] == -1:
                 session['error'] = 'Account registration still needs to be \
                                     completed. Please check your emails.'
                 return redirect(url_for('index'))
             elif session['access_lvl'] < level:
                 session['error'] = 'User access level insufficient.'
-                return redirect(url_for('login', next=request.endpoint))
+                return redirect(url_for('login', next=request.path[1:]))
             return func(*args, **kwargs)
         return wrapper
     return callable
 
 @app.route('/')
 def index():
-    if 'msg' in session:
-        msg = session['msg']
-        session.pop('msg', None)
-    else:
-        msg = None
     return render_template('index.html', msg=msg, session=session)
 
 @app.route('/error/<error>', methods=['GET', 'POST'])
@@ -142,7 +137,7 @@ def logout():
     session.pop('email', None)
     session.pop('access_lvl', None)
     session.pop('client_id', None)
-    session['msg'] = "You have logged out."
+    flash("You have logged out.")
     return redirect(request.args.get('next') or url_for('index'))
 
 @app.route('/create_account', methods=['GET', 'POST'])
@@ -207,7 +202,7 @@ def create_account():
                           sender=app.config.get('MAIL_USERNAME'), recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
-            session['msg'] = "An email has been sent to %s to confirm your registration." % email
+            flash("An email has been sent to %s to confirm your registration." % email)
             return redirect(request.args.get('next') or url_for('index'))
     return render_template('create_account.html', msg=msg)
 
@@ -232,7 +227,7 @@ def reset_password():
         msg = Message("Password reset confirmation", sender=app.config.get('MAIL_USERNAME'), recipients=[email])
         msg.html = render_template('pass_reset.html', link=link)
         mail.send(msg)
-        session['msg'] = "An email has been sent to %s reset your password." % email
+        flash("An email has been sent to %s reset your password." % email)
         return redirect(request.args.get('next') or url_for('index'))
     return render_template('reset_password.html')
 
@@ -258,7 +253,7 @@ def reset_confirmation(key):
             db.cur.execute("UPDATE users SET password = %s, auth_key = NULL WHERE auth_key = %s", \
                            (password, key))
             db.con.commit()
-            session['msg'] = "You have successfully changed your password."
+            flash("You have successfully changed your password.")
             return redirect(url_for('index'))
     return render_template('reset_confirmation.html', msg=msg)
 
