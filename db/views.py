@@ -103,7 +103,7 @@ def auth_required(level=2):
 
 @app.route('/')
 def index():
-    return render_template('index.html', msg=msg, session=session)
+    return render_template('index.html', session=session)
 
 @app.route('/error/<error>', methods=['GET', 'POST'])
 def error(error):
@@ -113,11 +113,6 @@ def error(error):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'error' in session:
-        msg = session['error']
-        session.pop('error', None)
-    else:
-        msg = None
     db = Database()
     if request.method == 'POST':
         if request.form['next'] == 'login':
@@ -130,7 +125,7 @@ def login():
             return redirect(url_for('create_account'))
         if request.form['next'] == 'reset':
             return redirect(url_for('reset_password'))
-    return render_template('login.html', msg=msg)
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -142,11 +137,6 @@ def logout():
 
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
-    if 'error' in session:
-        msg = session['error']
-        session.pop('error', None)
-    else:
-        msg = None
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
@@ -204,7 +194,7 @@ def create_account():
             mail.send(msg)
             flash("An email has been sent to %s to confirm your registration." % email)
             return redirect(request.args.get('next') or url_for('index'))
-    return render_template('create_account.html', msg=msg)
+    return render_template('create_account.html')
 
 @app.route('/email_confirmation/<key>')
 def email_confirmation(key):
@@ -233,11 +223,6 @@ def reset_password():
 
 @app.route('/reset_confirmation/<key>', methods=['GET', 'POST'])
 def reset_confirmation(key):
-    if 'error' in session:
-        msg = session['error']
-        session.pop('error', None)
-    else:
-        msg = None
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
@@ -255,7 +240,7 @@ def reset_confirmation(key):
             db.con.commit()
             flash("You have successfully changed your password.")
             return redirect(url_for('index'))
-    return render_template('reset_confirmation.html', msg=msg)
+    return render_template('reset_confirmation.html')
 
 @app.route('/database')
 @auth_required(level=2)
@@ -311,7 +296,6 @@ def tables_add(table):
                         fieldnames += ', ' + fieldname
                         values += ', ' + value
             query = "INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values)
-            print(query)
             db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
             db.con.commit()
             return redirect(url_for('tables', table=table))
@@ -382,7 +366,7 @@ def time_slots(date, day):
                              (datetime.min + entry['end']).time(),
                entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
-    db.cur.execute("SELECT name, start, end, prac_id FROM bookings")
+    db.cr.execute("SELECT name, start, end, prac_id FROM bookings")
     bookings = [[entry['name'], (datetime.min + entry['start']).time(),
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
@@ -426,7 +410,7 @@ def time_slots(date, day):
     # generate list of all possible times in a day
     time_slots = [dt for dt in
         datetime_range(datetime.combine(valid_avails[0][0], time(hour=9)),
-                       datetime.combine(valid_avails[0][0], time(hour=17, minute=55)),
+                       datetime.combine(valid_avails[0][0], time(hour=20, minute=55)),
                        timedelta(minutes=30))]
     # find available slots
     sessions = 0
@@ -576,7 +560,7 @@ def osteopathy():
 @auth_required(level=0)
 def my_appointments():
     db = Database()
-    db.cur.execute("SELECT client_id, prac_id from users WHERE email = %s", (session['email']))
+    db.cur.execute("SELECT client_id, prac_id FROM users WHERE email = %s", (session['email']))
     res = db.cur.fetchall()
     client_id = res[0]['client_id']
     prac_id = res[0]['prac_id']
@@ -613,6 +597,50 @@ def my_appointments():
     return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
                            named_keys=res[2], access_lvl=session['access_lvl'])
 
+@app.route('/my_appointments/visual/<week>')
+@auth_required(level=0)
+def my_appointments_gui(week):
+    db = Database()
+    db.cur.execute("SELECT * FROM users WHERE email = %s", (session['email']))
+    res = db.cur.fetchall()[0]
+    prac_id = res['prac_id']
+    client_id = res['client_id']
+    if client_id == None:
+        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s" % prac_id)
+    else:
+        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s" % client_id)
+    bookings = db.cur.fetchall()
+    today = date.today()
+    target_day = today + timedelta(days=int(week)*7)
+    monday = target_day - timedelta(days=target_day.weekday())
+    start_time = time(hour=9)
+
+    b_table = [0]*24
+    for i in range(0, 24):
+        b_table[i] = [0]*7
+    for b in bookings:
+        if client_id == None:
+            db.cur.execute("SELECT * FROM clients WHERE client_id = %s", (b['client_id']))
+        else:
+            db.cur.execute("SELECT * FROM practitioners WHERE prac_id = %s", (b['prac_id']))
+        personnel = db.cur.fetchall()[0]
+        interval = intervals.closed(monday, monday + timedelta(days=7))
+        if b['name'] in interval:
+            j = (b['name'] - monday).days
+            btime = (datetime.min + b['start']).time()
+            if btime == start_time:
+                i = 0
+            else:
+                bdtime = datetime.combine(today, btime)
+                start_datetime = datetime.combine(today, start_time)
+                i = (bdtime - start_datetime).seconds/(30*60)
+            b_table[i][j] = personnel['name'] + ' ' + personnel['surname']
+    times = [dt for dt in datetime_range(datetime.combine(today, time(hour=9)), \
+             datetime.combine(today, time(hour=20, minute=55)), \
+             timedelta(seconds=30*60))]
+    times = [t.strftime('%-H:%M') for t in times]
+    return render_template('my_appointments_gui.html', booking=b_table, times=times)
+
 @app.route('/my_appointments/notes/<booking_id>', methods=['GET', 'POST'])
 @auth_required(level=2)
 def appointment_notes(booking_id):
@@ -631,8 +659,7 @@ def appointment_notes_add(booking_id):
     db = Database()
     db.cur.execute("SELECT * FROM bookings WHERE booking_id = %s" % booking_id)
     bookings = db.cur.fetchall()[0]
-    db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s" \
-                   % bookings['client_id'])
+    db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s" % bookings['client_id'])
     res = db.cur.fetchall()[0]
     client = res['name'] + ' ' + res['surname']
     db.cur.execute("SELECT * FROM notes WHERE booking_id = %s AND draft = 1" % booking_id)
@@ -644,16 +671,16 @@ def appointment_notes_add(booking_id):
         if 'note_draft' in request.form:
             db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
                            booking_id, draft) VALUES(%s, NULL, NOW(), %s, %s, %s, 1)", \
-                           (request.form['note_draft'], bookings['client_id'], bookings['prac_id'], \
-                           booking_id))
+                           (request.form['note_draft'], bookings['client_id'], \
+                           bookings['prac_id'], booking_id))
             db.con.commit()
             flash('Draft saved')
             return redirect(url_for('appointment_notes', booking_id=booking_id))
         if 'note_final' in request.form:
             db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
                            booking_id, draft) VALUES(%s, %s, NOW(), %s, %s, %s, 0)", \
-                           (request.form['note_final'], request.form['img'], bookings['client_id'], \
-                           bookings['prac_id'], booking_id))
+                           (request.form['note_final'], request.form['img'], \
+                           bookings['client_id'], bookings['prac_id'], booking_id))
             db.con.commit()
             db.cur.execute("DELETE FROM notes WHERE draft = 1")
             db.con.commit()
