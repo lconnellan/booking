@@ -330,6 +330,19 @@ tr:nth-child(even) {
   background-color: #ffffff;
 }
 
+.app tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+.app a{
+  background-color: #0065a3;
+  text-align: center;
+  font-size: 14px;
+  text-decoration: none;
+  font-weight: normal;
+  color: white;
+}
+
 /* Slideshow container */
 .slideshow-container {
   max-width: 800px;

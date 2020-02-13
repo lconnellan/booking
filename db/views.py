@@ -624,6 +624,8 @@ def my_appointments_gui(week):
         else:
             db.cur.execute("SELECT * FROM practitioners WHERE prac_id = %s", (b['prac_id']))
         personnel = db.cur.fetchall()[0]
+        db.cur.execute("SELECT * FROM treatments WHERE treat_id = %s", (b['treat_id']))
+        duration = db.cur.fetchall()[0]['duration']
         interval = intervals.closed(monday, monday + timedelta(days=7))
         if b['name'] in interval:
             j = (b['name'] - monday).days
@@ -633,13 +635,18 @@ def my_appointments_gui(week):
             else:
                 bdtime = datetime.combine(today, btime)
                 start_datetime = datetime.combine(today, start_time)
-                i = (bdtime - start_datetime).seconds/(30*60)
-            b_table[i][j] = personnel['name'] + ' ' + personnel['surname']
+                i = int((bdtime - start_datetime).seconds/(30*60))
+            b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id']]
+            if duration == 1.0:
+                b_table[i+1][j] = ['filler', b['booking_id']]
     times = [dt for dt in datetime_range(datetime.combine(today, time(hour=9)), \
              datetime.combine(today, time(hour=20, minute=55)), \
              timedelta(seconds=30*60))]
     times = [t.strftime('%-H:%M') for t in times]
-    return render_template('my_appointments_gui.html', booking=b_table, times=times)
+    days = [monday.strftime('%a %d %b')]
+    for d in range(1, 7):
+        days.append((monday + timedelta(days=d)).strftime('%a %d %b'))
+    return render_template('my_appointments_gui.html', booking=b_table, times=times, days=days)
 
 @app.route('/my_appointments/notes/<booking_id>', methods=['GET', 'POST'])
 @auth_required(level=2)
