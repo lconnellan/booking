@@ -636,9 +636,11 @@ def my_appointments_gui(week):
                 bdtime = datetime.combine(today, btime)
                 start_datetime = datetime.combine(today, start_time)
                 i = int((bdtime - start_datetime).seconds/(30*60))
-            b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id']]
             if duration == 1.0:
-                b_table[i+1][j] = ['filler', b['booking_id']]
+                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 1]
+                b_table[i+1][j] = ['filler', b['booking_id'], 0]
+            else:
+                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 0]
     times = [dt for dt in datetime_range(datetime.combine(today, time(hour=9)), \
              datetime.combine(today, time(hour=20, minute=55)), \
              timedelta(seconds=30*60))]
@@ -646,7 +648,8 @@ def my_appointments_gui(week):
     days = [monday.strftime('%a %d %b')]
     for d in range(1, 7):
         days.append((monday + timedelta(days=d)).strftime('%a %d %b'))
-    return render_template('my_appointments_gui.html', booking=b_table, times=times, days=days)
+    return render_template('my_appointments_gui.html', booking=b_table, times=times, days=days, \
+                           week=week)
 
 @app.route('/my_appointments/notes/<booking_id>', methods=['GET', 'POST'])
 @auth_required(level=2)

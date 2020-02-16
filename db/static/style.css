@@ -317,17 +317,24 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 
-.acc table{
-  width: auto;
+.borderless table {
+ border: 0px;
 }
-.acc td {
-  border: none;
-  text-align: left;
-  padding: 0px;
-  padding-right: 5px;
+
+.borderless td {
+ border: 0px;
 }
-.acc tr:nth-child(even) {
-  background-color: #ffffff;
+
+.datatable table {
+ border: 1px solid black;
+}
+
+.datatable td {
+ border: 1px solid black;
+}
+
+.datatable th {
+ border: 1px solid black;
 }
 
 .app tr:nth-child(even) {
@@ -341,6 +348,19 @@ tr:nth-child(even) {
   text-decoration: none;
   font-weight: normal;
   color: white;
+}
+
+.acc table{
+  width: auto;
+}
+.acc td {
+  border: none;
+  text-align: left;
+  padding: 0px;
+  padding-right: 5px;
+}
+.acc tr:nth-child(even) {
+  background-color: #ffffff;
 }
 
 /* Slideshow container */
