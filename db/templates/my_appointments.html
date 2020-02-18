@@ -23,6 +23,7 @@
             {% if access_lvl == 2 %}
               <th>Payment Status</th>
               <th>Notes</th>
+              <th>Print Invoice</th>
               <th>Submit Changes</th>
               <th>Delete Row</th>
             {% endif %}
@@ -52,6 +53,7 @@
                   </select>
                 </td>
                 <td><button type="submit" name="view" value="{{row['booking_id']}}"> View Notes </button></td>
+                <td><input type="checkbox" name="invoice" value="{{row['booking_id']}}"></td>
                 <td><button type="submit" name="submit" value="{{row['booking_id']}}"> Submit </button></td>
               {% else %}
                 <td>{{ row['price'] }}</td>
@@ -65,6 +67,11 @@
               {% endif %}
             </tr>
           {% endfor %}
+          <tr>
+            <td colspan="10"> </td>
+            <td><button type=submit" name="invoice-submit">Submit</button></td>
+            <td colspan="2"> </td>
+          </tr>
         {% endif %}
       </tbody></table>
     </form>

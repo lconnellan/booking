@@ -594,6 +594,8 @@ def my_appointments():
             return redirect(url_for('my_appointments'))
         elif 'view' in request.form:
             return redirect(url_for('appointment_notes', booking_id=request.form['view']))
+        elif 'invoice-submit' in request.form:
+            return redirect(url_for('invoice'))
     return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
                            named_keys=res[2], access_lvl=session['access_lvl'])
 
@@ -697,6 +699,13 @@ def appointment_notes_add(booking_id):
             return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', bookings=bookings, client=client, \
                            draft=draft)
+
+@app.route('/invoice', methods=['GET', 'POST'])
+@auth_required(level=2)
+def invoice():
+    prac = session['']
+    return render_template('invoice.html', bookings=bookings, client=client, prac=prac, date=date \
+                           total=total)
 
 @app.route('/client_note', methods=['GET', 'POST'])
 @auth_required(level=2)
