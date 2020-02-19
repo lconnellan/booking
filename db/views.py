@@ -595,7 +595,8 @@ def my_appointments():
         elif 'view' in request.form:
             return redirect(url_for('appointment_notes', booking_id=request.form['view']))
         elif 'invoice-submit' in request.form:
-            return redirect(url_for('invoice'))
+            id_list = request.form.getlist('invoice')
+            return redirect(url_for('invoice', id_list=id_list))
     return render_template('my_appointments.html', bookings=bookings, col_type=res[1], \
                            named_keys=res[2], access_lvl=session['access_lvl'])
 
@@ -700,12 +701,31 @@ def appointment_notes_add(booking_id):
     return render_template('appointment_notes_add.html', bookings=bookings, client=client, \
                            draft=draft)
 
-@app.route('/invoice', methods=['GET', 'POST'])
+@app.route('/invoice/<id_list>', methods=['GET', 'POST'])
 @auth_required(level=2)
-def invoice():
-    prac = session['']
-    return render_template('invoice.html', bookings=bookings, client=client, prac=prac, date=date \
-                           total=total)
+def invoice(id_list):
+    id_list = ast.literal_eval(id_list)
+    db = Database()
+    total = 0
+    bookings = []
+    client = None
+    for booking_id in id_list:
+        db.cur.execute("SELECT * FROM bookings WHERE booking_id = %s", booking_id)
+        booking = db.cur.fetchall()[0]
+        db.cur.execute("SELECT name FROM treatments WHERE treat_id = %s", booking['treat_id'])
+        treatment = db.cur.fetchall()[0]['name']
+        if client is None:
+            db.cur.execute("SELECT * FROM clients WHERE client_id = %s", booking['client_id'])
+            res = db.cur.fetchall()[0]
+            client = res['name'] + ' ' + res['surname']
+            db.cur.execute("SELECT * FROM practitioners WHERE prac_id = %s", booking['prac_id'])
+            res = db.cur.fetchall()[0]
+            prac = res['name'] + ' ' + res['surname']
+        bookings.append([treatment, booking['name'], booking['price']])
+        total += booking['price']
+    today = date.today()
+    return render_template('invoice.html', bookings=bookings, client=client, prac=prac, \
+                           today=today, total=total)
 
 @app.route('/client_note', methods=['GET', 'POST'])
 @auth_required(level=2)

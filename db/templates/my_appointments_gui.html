@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}My Appointments - Visual{% endblock %}
+
+{% block main %}
+  <div class="main">
+    {% set weekint = week|int %}
+    <meta charset="UTF-8">
+    <table class="borderless" id="container"><tbody>
+    <tr>
+    <td valign="top">
+      <a href="{{url_for('my_appointments_gui', week=weekint-1)}}">previous &lt;&lt;</a>
+    </td>
+    <td>
+    <div class="app">
+    <table class="datatable" id="appointments"><tbody>
+      <tr>
+        <td> </td>
+        {% for d in range(0, 7) %}
+          <th> {{days[d]}} </th>
+        {% endfor %}
+      </tr>
+      {% for i in range(0, times|length) %}
+        <tr>
+          <th> {{times[i]}} </th>
+          {% for j in range(0, 7) %}
+            {% if booking[i][j] %}
+              {% set name = booking[i][j][0] %}
+              {% set id = booking[i][j][1] %}
+              {% if name != 'filler' %}
+                {% if booking[i][j][2] == 1 %}
+                  <td rowspan="2" bgcolor="#0065a3">
+                    <a href="{{url_for('appointment_notes', booking_id=id)}}">{{name}}</a>
+                  </td>
+                {% else %}
+                  <td bgcolor="#0065a3">
+                    <a href="{{url_for('appointment_notes', booking_id=id)}}">{{name}}</a>
+                  </td>
+                {% endif %}
+              {% endif %}
+            {% else %}
+              <td> </td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody></table>
+    </div>
+    </td>
+    <td valign="top">
+      <a href="{{url_for('my_appointments_gui', week=weekint+1)}}">next &gt;&gt;</a>
+    </td>
+    </tbody><table>
+  </div>
+{% endblock %}

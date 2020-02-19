@@ -318,11 +318,23 @@ tr:nth-child(even) {
 }
 
 .borderless table {
- border: 0px;
+  border: 0px;
 }
 
 .borderless td {
- border: 0px;
+  border: 0px;
+}
+
+.bordered table {
+  border: 2px solid black;
+}
+
+.bordered td {
+  border: 2px solid black;
+}
+
+.bordered tr:nth-child(even) {
+  background-color: #ffffff;
 }
 
 .datatable table {

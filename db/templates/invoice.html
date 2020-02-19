@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Invoice</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="shortcut icon" href="../static/pics/favicon.ico"/>
+</head>
+
+<body>
+  <div class="large-text">C.G. Osteopathy LTD</div>
+
+  <h1>Invoice</h1>
+
+  <div class="box">To: {{client}}</div>
+  <br>
+
+  <table class="bordered"><tbody>
+    <tr>
+      <td><b>Invoice Date:</b></td> <td>{{today}}</td>
+    </tr>
+    <tr>
+      <td><b>Reference:</b></td> <td>C.G. Osteopathy</td>
+    </tr>
+    <tr>
+      <td><b>Practitioner:</b></td> <td>{{prac}}</td>
+    </tr>
+  </tbody></table>
+  <br>
+
+  <table class="bordered"><tbody>
+    <tr>
+      <td><b>Appointment Type</b></td>
+      <td><b>Date</b></td>
+      <td><b>Amount (£)</b></td>
+    </tr>
+    {% for b in bookings %}
+      <tr>
+        {% for entry in b %}
+          <td>{{entry}}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="2"><b>Total:</b></td>
+      <td>{{total}}</td>
+    </tr>
+  </tbody></table>
+
+  <p>Terms: 10 days from the date of invoice</p>
+
+  <p><b>Please note that we are VAT exempt</b></p>
+
+  Please make payment BACS transfer to:<br>
+  <b>C.G. Osteopathy LTD</b><br>
+  Sort Code: <b>23-69-72</b><br>
+  Account No: <b>19924210</b><br>
+  <br>
+  <i><u>Framework Livingston</u></i><br>
+  <i>Law House, 1 Fairbairn Place</i><br>
+  <i>Livingston, EH54 6TN</i><br>
+  <br>
+ </body>
+
+</html>
