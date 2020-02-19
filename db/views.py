@@ -366,7 +366,7 @@ def time_slots(date, day):
                              (datetime.min + entry['end']).time(),
                entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
-    db.cr.execute("SELECT name, start, end, prac_id FROM bookings")
+    db.cur.execute("SELECT name, start, end, prac_id FROM bookings")
     bookings = [[entry['name'], (datetime.min + entry['start']).time(),
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
@@ -410,7 +410,7 @@ def time_slots(date, day):
     # generate list of all possible times in a day
     time_slots = [dt for dt in
         datetime_range(datetime.combine(valid_avails[0][0], time(hour=9)),
-                       datetime.combine(valid_avails[0][0], time(hour=20, minute=55)),
+                       datetime.combine(valid_avails[0][0], time(hour=19, minute=55)),
                        timedelta(minutes=30))]
     # find available slots
     sessions = 0

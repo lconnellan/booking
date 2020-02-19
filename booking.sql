@@ -112,6 +112,7 @@ DELIMITER ;
 TRUNCATE avails;
 INSERT IGNORE INTO avails (prac_id, day, start, end)
 VALUES (1, 'Monday', '9:00', '17:00'),
+       (1, 'Tuesday', '16:00', '20:00'),
        (1, 'Wednesday', '9:00', '17:00'),
        (1, 'Thursday', '9:00', '16:00'),
        (1, 'Friday', '9:00', '13:30'),

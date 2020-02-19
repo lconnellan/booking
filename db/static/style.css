@@ -61,6 +61,15 @@ textarea{
   margin-left: 150px;
 }
 
+.flexwrap {
+  flex-wrap: wrap;
+  display: flex;
+}
+
+.flexwrap button {
+  margin: 1%;
+}
+
 /* Version of main with flexbox */
 .mainflex {
   margin-top: 20px;
