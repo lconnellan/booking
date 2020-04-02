@@ -52,7 +52,7 @@ CREATE TABLE if not exists bookings (
   start TIME NOT NULL,
   end TIME NOT NULL,
   price DECIMAL(18,2) NOT NULL,
-  pay_status ENUM('not paid', 'cash', 'invoice', 'insurance') NOT NULL,
+  pay_status ENUM('not paid', 'cash', 'card', 'invoice', 'insurance') NOT NULL,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
   FOREIGN KEY (treat_id) REFERENCES treatments(treat_id)

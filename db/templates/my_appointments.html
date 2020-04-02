@@ -1,6 +1,39 @@
 {% extends "base.html" %}
 {% block title %}My Appointments{% endblock %}
 
+{% block head %}
+  <script>
+    function filter() {
+    // Declare variables
+    var input, filter, table, tr, length, td, i, txtValue;
+    input = document.getElementById("searchInput");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("appTable");
+    tr = table.getElementsByTagName("tr");
+    length = table.rows[0].cells.length;
+
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 1; i < tr.length-1; i++) {
+      var found = 0;
+      for (j = 0; j < length; j++) {
+        td = tr[i].getElementsByTagName("td")[j];
+        if (td) {
+          txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            found = 1;
+          }
+        }
+      }
+      if (found == 1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+  </script>
+{% endblock %}
+
 {% block main %}
   {% macro capitalize(text) %}
       {{ text[0]|upper}}{{text[1:] }}
@@ -8,8 +41,9 @@
 
   <div class="main" style="overflow-x:auto;">
     <h2>List of all your appointments</h2>
+    <input type="text" id="searchInput" onkeyup="filter()" placeholder="Search...">
     <form method="POST">
-      <table id="appointments"><tbody>
+      <table id="appTable"><tbody>
         {% if bookings %}
           <tr>
             <th>Practitioner</th>
@@ -41,7 +75,7 @@
                 <td>
                   <input type="number" name={{"price"+row['booking_id']|string}} min="0" value="{{row['price']}}" max='999'>
                 </td>
-                {% set statuses = ['not paid', 'cash', 'invoice', 'insurance'] %}
+                {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
                 <td>
                   <select name="{{"pay_status"+row['booking_id']|string}}">
                     <option value="{{row['pay_status']}}">{{ capitalize(row['pay_status']) }}</option>

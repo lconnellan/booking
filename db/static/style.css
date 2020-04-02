@@ -15,8 +15,8 @@ textarea{
 .main {
   margin-top: 20px;
   margin-bottom: 20px;
-  margin-right: 150px;
-  margin-left: 150px;
+  margin-right: 100px;
+  margin-left: 100px;
   border-bottom-style: solid;
   border-color: lightgrey;
   padding-bottom: 20px;
@@ -44,7 +44,7 @@ textarea{
 }
 
 .main input[type=number]{
-    width: 40px;
+    width: 50px;
 }
 
 .notes img{
@@ -356,6 +356,17 @@ tr:nth-child(even) {
 
 .datatable th {
  border: 1px solid black;
+}
+
+#searchInput {
+  background-image: url('/css/searchicon.png'); /* Add a search icon to input */
+  background-position: 10px 12px; /* Position the search icon */
+  background-repeat: no-repeat; /* Do not repeat the icon image */
+  width: 100%; /* Full-width */
+  font-size: 16px; /* Increase font-size */
+  padding: 12px 20px 12px 40px; /* Add some padding */
+  border: 1px solid #ddd; /* Add a grey border */
+  margin-bottom: 12px; /* Add some space below the input */
 }
 
 .app tr:nth-child(even) {
