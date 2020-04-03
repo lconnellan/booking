@@ -1,11 +1,26 @@
 {% extends "base.html" %}
 {% block title %}Client Notes{% endblock %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="/static/selectize/selectize.css">
+  <script src="/static/selectize/jquery.min.js"></script>
+  <script src="/static/selectize/jquery-ui.min.js"></script>
+  <script src="/static/selectize/highlight.min.js"></script>
+  <script src="/static/selectize/selectize.js"></script>
+  <script src="/static/selectize/main.js"></script>
+  <script>
+    $(function() {
+      $('select').selectize();
+    });
+  </script>
+{% endblock %}
+
 {% block main %}
-  <div class="main" style="overflow-x:auto;">
+  <div class="main">
     <h2>Please select a client whose note history you wish to view.</h2>
     <form method="POST">
-      <select name='client_id'>
+      <select name='client_id' placeholder="Select a client...">
+        <option value="">Select a client...</option>
         {% for client in clients %}
           <option value="{{client['client_id']}}">{{client['name'] + " " + client['surname']}}</option>
         {% endfor %}

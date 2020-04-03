@@ -15,8 +15,8 @@ textarea{
 .main {
   margin-top: 20px;
   margin-bottom: 20px;
-  margin-right: 100px;
-  margin-left: 100px;
+  margin-right: 150px;
+  margin-left: 150px;
   border-bottom-style: solid;
   border-color: lightgrey;
   padding-bottom: 20px;
@@ -46,6 +46,37 @@ textarea{
 .main input[type=number]{
     width: 50px;
 }
+
+.main-wide{
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-right: 50px;
+  margin-left: 50px;
+  border-bottom-style: solid;
+  border-color: lightgrey;
+  padding-bottom: 20px;
+  line-height: 1.6;
+}
+
+.main-wide button {
+  text-align: center;
+  padding: 12px 14px;
+  background-color: #0065a3;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: normal;
+  color: white;
+}
+
+.main-wide button:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.main-wide input[type=number]{
+    width: 50px;
+}
+
 
 .notes img{
   float: none;
