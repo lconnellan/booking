@@ -43,6 +43,29 @@
     </form>
     <br><button onClick="save_draft();"> Save Draft </button>
     <button onClick="upload_file();"> Submit </button>
+    {% if notes %}
+      <h2>Previous notes for {{named_keys['client_id'][notes[0]['client_id']]}}</h2>
+      <div class="notes">
+      <table id="notes"><tbody>
+        <tr>
+          <th>Note</th>
+          <th>Image</th>
+          <th>Timestamp</th>
+        </tr>
+        {% for i in range(0, notes|length) %}
+          <tr>
+            <td> <div class="edit-wrap"> {{ notes[i]['note'].decode("ascii")|safe }} </div></td>
+            {% if notes[i]['image'] %}
+              <td> <img src="{{ notes[i]['image'].decode("utf-8") }}"/> </td>
+            {% else %}
+              <td> </td>
+            {% endif %}
+            <td> {{ notes[i]['timestamp'] }} </td>
+          </tr>
+        {% endfor %}
+      </tbody></table>
+      </div>
+    {% endif %}
   </div>
 
   <script>

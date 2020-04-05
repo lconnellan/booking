@@ -663,6 +663,8 @@ def appointment_notes(booking_id):
     res = db.list_table('notes')
     if 'add' in request.form:
         return redirect(url_for('appointment_notes_add', booking_id=booking_id))
+    elif 'return' in request.form:
+        return redirect(url_for('my_appointments_gui', week=0))
     return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
                            named_keys=res[2])
 
@@ -680,6 +682,10 @@ def appointment_notes_add(booking_id):
         draft = db.cur.fetchall()[0]['note']
     except:
         draft = ''
+    db.cur.execute("SELECT * FROM notes WHERE notes.client_id = %s AND draft = 0" \
+                   % bookings['client_id'])
+    notes = db.cur.fetchall()
+    res = db.list_table('notes')
     if request.method == 'POST':
         if 'note_draft' in request.form:
             db.cur.execute("INSERT IGNORE INTO notes (note, image, timestamp, client_id, prac_id, \
@@ -695,11 +701,11 @@ def appointment_notes_add(booking_id):
                            (request.form['note_final'], request.form['img'], \
                            bookings['client_id'], bookings['prac_id'], booking_id))
             db.con.commit()
-            db.cur.execute("DELETE FROM notes WHERE draft = 1")
+            db.cur.execute("DELETE FROM notes WHERE draft = 1 AND booking_id = %s", booking_id)
             db.con.commit()
             return redirect(url_for('appointment_notes', booking_id=booking_id))
     return render_template('appointment_notes_add.html', bookings=bookings, client=client, \
-                           draft=draft)
+                           draft=draft, notes=notes, col_type=res[1], named_keys=res[2])
 
 @app.route('/invoice/<id_list>', methods=['GET', 'POST'])
 @auth_required(level=2)
