@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Client Choice{% endblock %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="/static/selectize/selectize.css">
+  <script src="/static/selectize/jquery.min.js"></script>
+  <script src="/static/selectize/jquery-ui.min.js"></script>
+  <script src="/static/selectize/highlight.min.js"></script>
+  <script src="/static/selectize/selectize.js"></script>
+  <script src="/static/selectize/main.js"></script>
+  <script>
+    $(function() {
+      $('select').selectize();
+    });
+  </script>
+{% endblock %}
+
 {% block main %}
   <div class="main">
     <h2>Since you are not signed in as a client, please choose a client from the list to book this appointment for.</h2>
     <form method="POST">
       {% if clients %}
-        <select name="client">
+        <select name="client" placeholder="Select a client...">
+          <option value="">Select a client...</option>
           {% for c in clients %}
             <option value='{{c[1]}}'> {{c[0]}} </option>
           {% endfor %}

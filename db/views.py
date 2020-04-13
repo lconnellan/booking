@@ -34,7 +34,7 @@ class Database:
                 column_type[col['Field']] = 'auto'
             elif col['Type'] in ['date', 'time']:
                 column_type[col['Field']] = 'str'
-            elif 'varchar' in col['Type']:
+            elif 'varchar' in col['Type'] or 'enum' in col['Type']:
                 column_type[col['Field']] = 'str'
             elif col['Key'] == 'MUL':
                 column_type[col['Field']] = 'foreign'
@@ -427,9 +427,10 @@ def time_slots(date, day):
 def dates():
     # collect list of dates for next month
     today = date.today()
-    date_range = [today]
+    monday = today - timedelta(days=today.weekday())
+    date_range = [monday]
     for n in range(1, 28):
-        date_range.append(today + timedelta(days=n))
+        date_range.append(monday + timedelta(days=n))
     # format it nicely
     date_range_f = [d.strftime("%A %d %B") for d in date_range]
     avails = []
