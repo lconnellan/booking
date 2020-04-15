@@ -4,6 +4,7 @@ import pymysql
 import hashlib
 from functools import wraps
 from datetime import datetime, timedelta, date, time
+from time import strptime
 import ast
 import random
 import string
@@ -413,15 +414,15 @@ def time_slots(date, day):
                        datetime.combine(valid_avails[0][0], time(hour=19, minute=55)),
                        timedelta(minutes=30))]
     # find available slots
-    sessions = 0
+    num_sessions = 0
     for i, t in enumerate(time_slots):
         pracs = []
         for avail in avails_i:
             if t in avail[0]:
                 pracs.append(avail[1])
-                sessions += 1
+                num_sessions += 1
         time_slots[i] = [t.strftime('%-H:%M'), pracs]
-    return time_slots, sessions
+    return time_slots, num_sessions
 
 @app.route('/dates', methods=['GET', 'POST'])
 def dates():
@@ -437,8 +438,8 @@ def dates():
     for d in date_range:
         dat = d.strftime('%Y-%m-%d')
         day = d.strftime('%A')
-        slots, sessions = time_slots(dat, day)
-        if sessions == 0:
+        slots, num_sessions = time_slots(dat, day)
+        if num_sessions == 0:
             avails.append('False')
         else:
             avails.append('True')
@@ -603,7 +604,7 @@ def my_appointments():
 
 @app.route('/my_appointments/visual/<week>')
 @auth_required(level=0)
-def my_appointments_gui(week):
+def my_diary(week):
     db = Database()
     db.cur.execute("SELECT * FROM users WHERE email = %s", (session['email']))
     res = db.cur.fetchall()[0]
@@ -611,17 +612,27 @@ def my_appointments_gui(week):
     client_id = res['client_id']
     if client_id == None:
         db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s" % prac_id)
+        bookings = db.cur.fetchall()
+        db.cur.execute("SELECT * FROM blocked_periods WHERE prac_id = %s" % prac_id)
+        blocked_periods = db.cur.fetchall()
+        db.cur.execute("SELECT * FROM avails WHERE prac_id = %s" % prac_id)
+        avails = db.cur.fetchall()
     else:
         db.cur.execute("SELECT * FROM bookings WHERE client_id = %s" % client_id)
-    bookings = db.cur.fetchall()
+        bookings = db.cur.fetchall()
+        db.cur.execute("SELECT * FROM blocked_periods")
+        blocked_periods = db.cur.fetchall()
+        db.cur.execute("SELECT * FROM avails")
+        avails = db.cur.fetchall()
+    # get current week, mon - fri, 9:00 - 21:00
     today = date.today()
     target_day = today + timedelta(days=int(week)*7)
     monday = target_day - timedelta(days=target_day.weekday())
     start_time = time(hour=9)
-
     b_table = [0]*24
     for i in range(0, 24):
         b_table[i] = [0]*7
+    interval = intervals.closed(monday, monday + timedelta(days=7))
     for b in bookings:
         if client_id == None:
             db.cur.execute("SELECT * FROM clients WHERE client_id = %s", (b['client_id']))
@@ -630,7 +641,6 @@ def my_appointments_gui(week):
         personnel = db.cur.fetchall()[0]
         db.cur.execute("SELECT * FROM treatments WHERE treat_id = %s", (b['treat_id']))
         duration = db.cur.fetchall()[0]['duration']
-        interval = intervals.closed(monday, monday + timedelta(days=7))
         if b['name'] in interval:
             j = (b['name'] - monday).days
             btime = (datetime.min + b['start']).time()
@@ -641,10 +651,37 @@ def my_appointments_gui(week):
                 start_datetime = datetime.combine(today, start_time)
                 i = int((bdtime - start_datetime).seconds/(30*60))
             if duration == 1.0:
-                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 1]
+                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 2]
                 b_table[i+1][j] = ['filler', b['booking_id'], 0]
             else:
-                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 0]
+                b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 1]
+    for b in blocked_periods:
+        if b['date'] in interval:
+            j = (b['date'] - monday).days
+            btime = (datetime.min + b['start']).time()
+            if btime == start_time:
+                i = 0
+            else:
+                bdtime = datetime.combine(today, btime)
+                start_datetime = datetime.combine(today, start_time)
+                i = int((bdtime - start_datetime).seconds/(30*60))
+            duration = int((b['end'] - b['start']).seconds/(30*60))
+            b_table[i][j] = ['blocked', 1, duration]
+            for k in range(1, duration):
+                b_table[i+k][j] = ['filler', 1, 0]
+    for b in avails:
+        j = strptime(b['day'], "%A").tm_wday
+        bstart = (datetime.min + b['start']).time()
+        duration = int((b['end'] - b['start']).seconds/(30*60))
+        if bstart == start_time:
+            i = 0
+        else:
+            bdstart = datetime.combine(today, bstart)
+            start_datetime = datetime.combine(today, start_time)
+            i = int((bdstart - start_datetime).seconds/(30*60))
+        for k in range(0, duration):
+            if b_table[i+k][j] == 0:
+                b_table[i+k][j] = ['free', 1, 1]
     times = [dt for dt in datetime_range(datetime.combine(today, time(hour=9)), \
              datetime.combine(today, time(hour=20, minute=55)), \
              timedelta(seconds=30*60))]
@@ -652,8 +689,8 @@ def my_appointments_gui(week):
     days = [monday.strftime('%a %d %b')]
     for d in range(1, 7):
         days.append((monday + timedelta(days=d)).strftime('%a %d %b'))
-    return render_template('my_appointments_gui.html', booking=b_table, times=times, days=days, \
-                           week=week)
+    return render_template('my_diary.html', booking=b_table, times=times, days=days, \
+                           week=week, access_lvl=session['access_lvl'])
 
 @app.route('/my_appointments/notes/<booking_id>', methods=['GET', 'POST'])
 @auth_required(level=2)
@@ -665,7 +702,7 @@ def appointment_notes(booking_id):
     if 'add' in request.form:
         return redirect(url_for('appointment_notes_add', booking_id=booking_id))
     elif 'return' in request.form:
-        return redirect(url_for('my_appointments_gui', week=0))
+        return redirect(url_for('my_diary', week=0))
     return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
                            named_keys=res[2])
 
