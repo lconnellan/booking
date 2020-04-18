@@ -21,12 +21,17 @@
     <form method="POST">
       {% if clients %}
         <select name="client" placeholder="Select a client...">
-          <option value="">Select a client...</option>
+          {% if prechosen %}
+            <option value="{{prechosen[1]}}"> {{prechosen[0]}} </option>
+          {% else %}
+            <option value="">Select a client...</option>
+          {% endif %}
           {% for c in clients %}
             <option value='{{c[1]}}'> {{c[0]}} </option>
           {% endfor %}
         </select>
-        <button type="submit"> Submit </button>
+        <button name="submit" type="submit">Submit</button>
+        <button name="new_client" type="submit">New Client</button>
       {% endif %}
     </form>
   </div>

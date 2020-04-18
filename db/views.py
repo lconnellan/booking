@@ -517,14 +517,25 @@ def confirmation():
 @auth_required(level=2)
 def client_choice():
     db = Database()
+    if request.args.get('client_id'):
+        flash('New Client Created')
+        client_id = request.args.get('client_id')
+        db.cur.execute("SELECT name, surname FROM clients WHERE client_id=%s", client_id)
+        res = db.cur.fetchall()[0]
+        prechosen = [res['name'] + ' '  + res['surname'], client_id]
+    else:
+        prechosen = ""
     db.cur.execute("SELECT name, surname, client_id FROM clients ORDER BY surname")
     res = db.cur.fetchall()
     clients = [[entry['name'] + ' '  + entry['surname'], entry['client_id']] for entry in res]
     if request.method == 'POST':
-        res = ast.literal_eval(request.form['client'])
-        session['client_id_tmp'] = res
-        return redirect(url_for('confirmation'))
-    return render_template('client_choice.html', clients=clients)
+        if 'submit' in request.form:
+            res = ast.literal_eval(request.form['client'])
+            session['client_id_tmp'] = res
+            return redirect(url_for('confirmation'))
+        elif 'new_client' in request.form:
+            return redirect(url_for('new_client'))
+    return render_template('client_choice.html', clients=clients, prechosen=prechosen)
 
 @app.route('/completed', methods=['GET', 'POST'])
 @auth_required(level=0)
@@ -632,7 +643,7 @@ def my_diary(week):
     b_table = [0]*24
     for i in range(0, 24):
         b_table[i] = [0]*7
-    interval = intervals.closed(monday, monday + timedelta(days=7))
+    interval = intervals.closed(monday, monday + timedelta(days=6))
     for b in bookings:
         if client_id == None:
             db.cur.execute("SELECT * FROM clients WHERE client_id = %s", (b['client_id']))
@@ -651,6 +662,7 @@ def my_diary(week):
                 start_datetime = datetime.combine(today, start_time)
                 i = int((bdtime - start_datetime).seconds/(30*60))
             if duration == 1.0:
+                print(i, j)
                 b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 2]
                 b_table[i+1][j] = ['filler', b['booking_id'], 0]
             else:
@@ -820,6 +832,32 @@ def block_periods():
                 return redirect(url_for('error', error=error))
             return redirect(url_for('block_periods'))
     return render_template('block_periods.html', blocked=blocked)
+
+@app.route('/new_client', methods=['GET', 'POST'])
+def new_client():
+    db = Database()
+    if request.method == 'POST':
+        forms = request.form.copy()
+        for f in forms:
+            if forms[f] == '':
+                if any(f == field for field in ['phone_2', 'address_2', 'address_3', 'county']):
+                    forms[f] = None
+                else:
+                    error = 'Please submit details for all fields marked with a *'
+                    session['error'] = error
+                    return redirect(url_for('create_account'))
+        # insert new details into db
+        db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
+                       address_1, address_2, address_3, city, county, postcode) \
+                       VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
+                       (forms['name'], forms['surname'], forms['dob'], forms['phone_1'], \
+                       forms['phone_2'], forms['address_1'], forms['address_2'], \
+                       forms['address_3'], forms['city'], forms['county'], forms['postcode']))
+        db.con.commit()
+        db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
+        client_id = db.cur.fetchall()[0]['client_id']
+        return redirect(url_for('client_choice', client_id=client_id))
+    return render_template('new_client.html')
 
 @app.route('/image')
 def view_image():
