@@ -711,11 +711,22 @@ def appointment_notes(booking_id):
     db.cur.execute("SELECT * FROM notes WHERE notes.booking_id = %s AND draft = 0" % booking_id)
     notes = db.cur.fetchall()
     res = db.list_table('notes')
-    if 'add' in request.form:
+    db.cur.execute("SELECT * FROM bookings WHERE booking_id = %s" % booking_id)
+    booking = db.cur.fetchall()[0]
+    if 'submit' in request.form:
+        db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
+                       (request.form['pay_status'], booking_id) )
+        db.cur.execute("UPDATE bookings SET price = %s WHERE booking_id = %s", \
+                       (request.form['price'], booking_id) )
+        db.con.commit()
+        return redirect(url_for('appointment_notes', booking_id=booking_id))
+    elif 'invoice' in request.form:
+        return redirect(url_for('invoice', id_list=[booking_id]))
+    elif 'add' in request.form:
         return redirect(url_for('appointment_notes_add', booking_id=booking_id))
     elif 'return' in request.form:
         return redirect(url_for('my_diary', week=0))
-    return render_template('appointment_notes.html', notes=notes, col_type=res[1], \
+    return render_template('appointment_notes.html', booking=booking, notes=notes, col_type=res[1],\
                            named_keys=res[2])
 
 @app.route('/my_appointments/notes/<booking_id>_add', methods=['GET', 'POST'])
