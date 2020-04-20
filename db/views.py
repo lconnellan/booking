@@ -457,7 +457,7 @@ def dates():
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
     db = Database()
-    slots = time_slots(session['date'], session['day'])[0]
+    time_slots = time_slots(session['date'], session['day'])[0]
     if request.method == 'POST':
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
@@ -475,7 +475,7 @@ def booking():
         session['pracs'] = pracs
         return redirect(url_for('practitioner_choice'))
 
-    return render_template('booking.html', time_slots=slots)
+    return render_template('booking.html', time_slots=time_slots)
 
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
 @auth_required(level=0)
@@ -489,29 +489,6 @@ def practitioner_choice():
         else:
             return redirect(url_for('client_choice'))
     return render_template('practitioner_choice.html', pracs=session['pracs'])
-
-@app.route('/confirmation', methods=['GET', 'POST'])
-@auth_required(level=0)
-def confirmation():
-    if request.method == 'POST':
-        if request.form['answer'] == "proceed":
-            db = Database()
-            if 'client_id' in session:
-                client_id = session['client_id']
-            else:
-                client_id = session['client_id_tmp']
-                session.pop('client_id_tmp')
-            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name,\
-                           start, end, descr, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, \
-                           %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
-                           str(session['treat_id']), session['date'], session['time_slot'], \
-                           session['end'], request.form['descr'], session['price']))
-            db.con.commit()
-
-            return redirect(url_for('completed'))
-        elif request.form['answer'] == "cancel":
-            return redirect(url_for('index'))
-    return render_template('confirmation.html', session=session)
 
 @app.route('/client_choice', methods=['GET', 'POST'])
 @auth_required(level=2)
@@ -536,6 +513,29 @@ def client_choice():
         elif 'new_client' in request.form:
             return redirect(url_for('new_client'))
     return render_template('client_choice.html', clients=clients, prechosen=prechosen)
+
+@app.route('/confirmation', methods=['GET', 'POST'])
+@auth_required(level=0)
+def confirmation():
+    if request.method == 'POST':
+        if request.form['answer'] == "proceed":
+            db = Database()
+            if 'client_id' in session:
+                client_id = session['client_id']
+            else:
+                client_id = session['client_id_tmp']
+                session.pop('client_id_tmp')
+            db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name,\
+                           start, end, descr, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, \
+                           %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
+                           str(session['treat_id']), session['date'], session['time_slot'], \
+                           session['end'], request.form['descr'], session['price']))
+            db.con.commit()
+
+            return redirect(url_for('completed'))
+        elif request.form['answer'] == "cancel":
+            return redirect(url_for('index'))
+    return render_template('confirmation.html', session=session)
 
 @app.route('/completed', methods=['GET', 'POST'])
 @auth_required(level=0)
@@ -662,7 +662,6 @@ def my_diary(week):
                 start_datetime = datetime.combine(today, start_time)
                 i = int((bdtime - start_datetime).seconds/(30*60))
             if duration == 1.0:
-                print(i, j)
                 b_table[i][j] = [personnel['name'] + ' ' + personnel['surname'], b['booking_id'], 2]
                 b_table[i+1][j] = ['filler', b['booking_id'], 0]
             else:
@@ -699,6 +698,17 @@ def my_diary(week):
              timedelta(seconds=30*60))]
     times = [t.strftime('%-H:%M') for t in times]
     days = [monday.strftime('%a %d %b')]
+
+    if request.method == 'POST':
+        self.cur.execute("SELECT prac_id FROM users WHERE email = %s", (session['email'], ))
+        session['prac_id'] = db.cur.fetchall()[0]['prac_id']
+        session['treat_id'] = 2 # follow up session
+        session['date'] = request.form['date'] # e.g. 2020-04-28
+        session['time_slot'] = request.form['time'] # e.g. 15:30
+        session['end'] = request.form['end']
+        self.cur.execute("SELECT price FROM treatments WHERE treat_id = %s", session['treat_id'])
+        session['price'] = db.cur.fetchall()[0]['price']
+
     for d in range(1, 7):
         days.append((monday + timedelta(days=d)).strftime('%a %d %b'))
     return render_template('my_diary.html', booking=b_table, times=times, days=days, \
