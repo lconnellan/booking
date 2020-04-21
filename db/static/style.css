@@ -77,7 +77,6 @@ textarea{
     width: 50px;
 }
 
-
 .notes img{
   float: none;
   min-width: 100px;
@@ -378,15 +377,51 @@ tr:nth-child(even) {
 }
 
 .datatable table {
- border: 1px solid black;
+  border: 1px solid black;
 }
 
 .datatable td {
- border: 1px solid black;
+  border: 1px solid black;
+  height: 100%;
 }
 
 .datatable th {
- border: 1px solid black;
+  border: 1px solid black;
+}
+
+#green-button {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 24px 0px;
+  background-color: lightgreen !important;
+  border: none;
+}
+
+#green-button:hover{
+  width: 100% !important;
+  height: 100% !important;
+  background-color: lightblue !important;
+  border: none;
+}
+
+#white-button {
+  width: 100%;
+  height: 100%;
+  padding: 24px 0px;
+  background-color: white !important;
+  border: none;
+}
+
+#white-button:hover {
+  width: 100%;
+  height: 100%;
+  background-color: lightblue !important;
+  border: none;
+}
+
+#no-padding {
+  padding: 0px !important;
+  height: 100% !important;
 }
 
 #searchInput {
