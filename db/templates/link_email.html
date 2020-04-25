@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Link Email{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="/static/selectize/selectize.css">
+  <script src="/static/selectize/jquery.min.js"></script>
+  <script src="/static/selectize/jquery-ui.min.js"></script>
+  <script src="/static/selectize/highlight.min.js"></script>
+  <script src="/static/selectize/selectize.js"></script>
+  <script src="/static/selectize/main.js"></script>
+  <script>
+    $(function() {
+      $('select').selectize();
+    });
+  </script>
+{% endblock %}
+
+{% block main %}
+  <div class='main'>
+    {% if unlinked %}
+      <h2>Select a client from the list and an email to send to them to
+      create their user account.</h2>
+      <form method='POST'>
+        <select name='client_id' placeholder='Select a client...'>
+          <option value=''>Select a client...</option>
+          {% for c in unlinked %}
+            <option value='{{c['client_id']}}'>{{c['name'] + ' ' + c['surname']}}</option>
+          {% endfor %}
+        </select>
+        Email: <input name='email' type='email' placeholder='Email'></input><br>
+        <button name='submit' type='submit'>Submit</button>
+      </form>
+    {% else %}
+      <h3>No unregistered clients found. To make a new client, choose 'New client' during the
+      booking procedure, or have them make a new account.<h3>
+    {% endif %}
+  </div>
+{% endblock %}

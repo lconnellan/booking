@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}My Appointments - Visual{% endblock %}
+
+{% block main %}
+  <div class="main">
+    {% set weekint = week|int %}
+    <meta charset="UTF-8">
+    <table class="borderless" id="container"><tbody>
+    <tr>
+    <td valign="top">
+      <a href="{{url_for('my_diary', week=weekint-1)}}">previous &lt;&lt;</a>
+    </td>
+    <td>
+    <div class="app">
+    <table class="datatable" id="appointments"><tbody>
+      <tr>
+        <td> </td>
+        {% for d in range(0, 7) %}
+          <th> {{days[d]}} </th>
+        {% endfor %}
+      </tr>
+      {% for i in range(0, times|length) %}
+        <tr>
+          <th> {{times[i]}} </th>
+          {% for j in range(0, 7) %}
+            {% if booking[i][j] %}
+              {% set name = booking[i][j][0] %}
+              {% set id = booking[i][j][1] %}
+              {% set duration = booking[i][j][2] %}
+              {% if name != 'filler' %}
+                {% if name == 'blocked' %}
+                  <td rowspan="{{duration}}" bgcolor="grey">
+                    <div class="grey">
+                      {% if access_lvl == 2 %}
+                        <a href="{{url_for('block_periods')}}">Blocked period</a>
+                      {% else %}
+                        Unavailable
+                      {% endif %}
+                    </div>
+                  </td>
+                {% elif name != 'free' %}
+                  {% if access_lvl == 2 %}
+                    <td rowspan="{{duration}}" bgcolor="#0065a3">
+                      <a href="{{url_for('appointment_notes', booking_id=id)}}">{{name}}</a>
+                    </td>
+                  {% else %}
+                    <td rowspan="{{duration}}" bgcolor="#0065a3" style="color:white">
+                      {{name}}
+                    </td>
+                  {% endif %}
+                {% elif name == 'free' %}
+                  {% if access_lvl == 2 %}
+                    <td id=no-padding bgcolor="lightgreen">
+                      <form method='POST'>
+                        <input name='time' type='hidden' value='{{times[i]}}'> </input>
+                        <input name='date' type='hidden' value='{{j}}'> </input>
+                        <button id=green-button></button>
+                      </form>
+                    </td>
+                  {% else %}
+                    <td bgcolor="lightgreen"> </td>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% else %}
+              {% if access_lvl == 2 %}
+                <td id=no-padding>
+                  <form method='POST'>
+                    <input name='time' type='hidden' value='{{times[i]}}'> </input>
+                    <input name='date' type='hidden' value='{{j}}'> </input>
+                    <button id=white-button value='time'></button>
+                  </form>
+                </td>
+              {% else %}
+                <td> </td>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody></table>
+    </div>
+    </td>
+    <td valign="top">
+      <a href="{{url_for('my_diary', week=weekint+1)}}">next &gt;&gt;</a>
+    </td>
+    </tbody><table>
+  </div>
+{% endblock %}

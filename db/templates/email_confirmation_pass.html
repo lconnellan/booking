@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Email Confirmation{% endblock %}
+
+{% block main %}
+  <div class="main">
+    <div class="container">
+      <h2>Email Confirmation</h2>
+      To confirm your email and register, please enter a password.
+      <br><br>
+      <form action="" method="post">
+        <div class="acc">
+        <table id="tables"><tbody>
+          <tr>
+            <td>Password</td>
+            <td><input type=password placeholder="Password" name="password"></td>
+          </tr>
+          <tr>
+            <td>Confirm Password</td>
+            <td><input type=password placeholder="Confirm Password" name="password_confirm"></td>
+          </tr>
+        </tbody></table>
+        </div>
+        <input type="submit" value="Submit">
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -35,6 +35,7 @@
       {% else %}
         <h2>No notes for selected appointment</h2>
       {% endif %}
+      Description: {{booking['descr']}} <br>
       {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
       Payment status: <input type="number" name="price" min="0" value="{{booking['price']}}" max='999'>
       <select name="pay_status">
@@ -46,7 +47,7 @@
         {% endfor %}
       </select>
       <td><button type=submit" name="submit">Submit Changes</button></td>
-      <td><button type=submit" name="invoice">Print invoice</button></td> <br>
+      <td><button type=submit" name="invoice">Print invoice</button></td> <br> <br>
       <button type="submit" name="add"> Add new note </button>
       <button type="submit" name="return"> Return to diary </button>
     </form>

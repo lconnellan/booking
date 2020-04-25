@@ -38,7 +38,10 @@ class Database:
             elif 'varchar' in col['Type'] or 'enum' in col['Type']:
                 column_type[col['Field']] = 'str'
             elif col['Key'] == 'MUL':
-                column_type[col['Field']] = 'foreign'
+                if col['Null'] == 'NO':
+                    column_type[col['Field']] = 'foreign'
+                else:
+                    column_type[col['Field']] = 'foreign_null'
             else:
                 column_type[col['Field']] = 'num'
         self.cur.execute("USE information_schema")
@@ -89,14 +92,14 @@ def auth_required(level=2):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if not 'access_lvl' in session:
-                session['error'] = 'Login is required to continue.'
+                flash('Login is required to continue.')
                 return redirect(url_for('login', next=request.path[1:]))
             elif session['access_lvl'] == -1:
-                session['error'] = 'Account registration still needs to be \
-                                    completed. Please check your emails.'
+                flash('Account registration still needs to be \
+                                    completed. Please check your emails.')
                 return redirect(url_for('index'))
             elif session['access_lvl'] < level:
-                session['error'] = 'User access level insufficient.'
+                flash('User access level insufficient.')
                 return redirect(url_for('login', next=request.path[1:]))
             return func(*args, **kwargs)
         return wrapper
@@ -141,22 +144,19 @@ def create_account():
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
-            error = 'Error: passwords do not match'
-            session['error'] = error
+            flash("Error: passwords do not match.")
             return redirect(url_for('create_account'))
         else:
             password = request.form['password']
             email = request.form['email']
             if not '@' in email or not '.' in email:
-                error = 'Error: email not valid.'
-                session['error'] = error
+                flash('Error: email not valid.')
                 return redirect(url_for('create_account'))
             db.cur.execute("SELECT email FROM users")
             emails = [emails['email'] for emails in db.cur.fetchall()]
             if email in emails:
-                error = 'Sorry but that email is already registered. Please \
-                         login or reset your password if necessary.'
-                session['error'] = error
+                flash('Sorry but that email is already registered. Please \
+                         login or reset your password if necessary.')
                 return redirect(url_for('create_account'))
             #generate hashed password
             m = hashlib.md5()
@@ -170,8 +170,7 @@ def create_account():
                     if any(f == field for field in ['phone_2', 'address_2', 'address_3', 'county']):
                         forms[f] = None
                     else:
-                        error = 'Please submit details for all fields marked with a *'
-                        session['error'] = error
+                        flash('Please submit details for all fields marked with a *')
                         return redirect(url_for('create_account'))
             # insert new details into db
             db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
@@ -189,7 +188,7 @@ def create_account():
             db.con.commit()
             # send email with confirmation link
             link = 'http://192.168.251.131:6789/email_confirmation/' + key
-            msg = Message("Please verify your email address", \
+            msg = Message("Framework Livingston - Email verification", \
                           sender=app.config.get('MAIL_USERNAME'), recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
             mail.send(msg)
@@ -200,9 +199,32 @@ def create_account():
 @app.route('/email_confirmation/<key>')
 def email_confirmation(key):
     db = Database()
+    db.cur.execute("SELECT password FROM users WHERE auth_key = %s", (key, ))
+    password = db.cur.fetchall()[0]['password']
+    if password == '':
+        flash('Error: blank password. Please set a password.')
+        return redirect(url_for('email_confirmation_pass', key=key))
     db.cur.execute("UPDATE users SET access_lvl = 0, auth_key = NULL WHERE auth_key = %s", (key, ))
     db.con.commit()
     return render_template('email_confirmation.html')
+
+@app.route('/email_confirmation/pass/<key>', methods=['GET', 'POST'])
+def email_confirmation_pass(key):
+    db = Database()
+    if request.method == 'POST':
+        if not request.form['password'] == request.form['password_confirm']:
+            flash('Error: passwords do not match')
+            return redirect(url_for('email_confirmation_pass', key=key))
+        else:
+            password = request.form['password']
+            #generate hashed password
+            m = hashlib.md5()
+            m.update(bytes(password, encoding='utf-8'))
+            password = m.hexdigest()
+            db.cur.execute("UPDATE users SET password = %s WHERE auth_key = %s", (password, key))
+            db.con.commit()
+            return redirect(url_for('email_confirmation', key=key))
+    return render_template('email_confirmation_pass.html')
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
@@ -215,7 +237,8 @@ def reset_password():
         db.con.commit()
         # send email with confirmation link
         link = 'http://192.168.251.131:6789/reset_confirmation/' + key
-        msg = Message("Password reset confirmation", sender=app.config.get('MAIL_USERNAME'), recipients=[email])
+        msg = Message("Framework Livingston - Password reset confirmation", \
+                      sender=app.config.get('MAIL_USERNAME'), recipients=[email])
         msg.html = render_template('pass_reset.html', link=link)
         mail.send(msg)
         flash("An email has been sent to %s reset your password." % email)
@@ -227,8 +250,7 @@ def reset_confirmation(key):
     db = Database()
     if request.method == 'POST':
         if not request.form['password'] == request.form['password_confirm']:
-            error = 'Passwords do not match'
-            session['error'] = error
+            flash('Error: Passwords do not match.')
             return redirect(url_for('reset_confirmation', key=key))
         else:
             password = request.form['password']
@@ -867,18 +889,19 @@ def block_periods():
     return render_template('block_periods.html', blocked=blocked)
 
 @app.route('/new_client', methods=['GET', 'POST'])
+@auth_required(level=2)
 def new_client():
     db = Database()
     if request.method == 'POST':
         forms = request.form.copy()
         for f in forms:
             if forms[f] == '':
-                if any(f == field for field in ['phone_2', 'address_2', 'address_3', 'county']):
+                if any(f == field for field in ['dob', 'phone_2', 'address_1', 'address_2', \
+                                                'address_3', 'city', 'county', 'postcode']):
                     forms[f] = None
                 else:
-                    error = 'Please submit details for all fields marked with a *'
-                    session['error'] = error
-                    return redirect(url_for('create_account'))
+                    flash('Please submit details for all fields marked with a *')
+                    return redirect(url_for('new_client'))
         # insert new details into db
         db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
                        address_1, address_2, address_3, city, county, postcode) \
@@ -889,8 +912,51 @@ def new_client():
         db.con.commit()
         db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
         client_id = db.cur.fetchall()[0]['client_id']
+        db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, \
+                       auth_key, client_id, prac_id) VALUES('dummy', '', -1, 'dummy', %s, NULL)", \
+                       client_id)
+        db.con.commit()
         return redirect(url_for('client_choice', client_id=client_id))
     return render_template('new_client.html')
+
+@app.route('/link_email', methods=['GET', 'POST'])
+@auth_required(level=2)
+def link_email():
+    db = Database()
+    db.cur.execute("SELECT * FROM users WHERE email = 'dummy'")
+    unlinked_users = db.cur.fetchall()
+    unlinked = []
+    for u in unlinked_users:
+        db.cur.execute("SELECT * FROM clients WHERE client_id = %s", u['client_id'])
+        unlinked.append(db.cur.fetchall()[0])
+    if request.method == 'POST':
+        print(request.form)
+        email = request.form['email']
+        client_id = request.form['client_id']
+        db.cur.execute("SELECT * FROM clients WHERE client_id = %s", client_id)
+        client = db.cur.fetchall()[0]
+        if not '@' in email or not '.' in email:
+            flash('Error: Email not valid.')
+            return redirect(url_for('link_email'))
+        db.cur.execute("SELECT email FROM users")
+        emails = [emails['email'] for emails in db.cur.fetchall()]
+        if email in emails:
+            flash('Sorry but that email is already registered.')
+            return redirect(url_for('link_email'))
+        # generate random auth key
+        key = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
+        # send email with confirmation link
+        link = 'http://192.168.251.131:6789/email_confirmation/pass/' + key
+        db.cur.execute("UPDATE users SET email = %s, auth_key = %s WHERE client_id = %s", \
+                      (email, key, client_id))
+        db.con.commit()
+        msg = Message("Framework Livingston - Email confirmation", \
+                      sender=app.config.get('MAIL_USERNAME'), recipients=[email])
+        msg.html = render_template('pass_confirm2.html', link=link, client=client)
+        mail.send(msg)
+        flash("An email has been sent to %s to confirm the registration." % email)
+        return redirect(url_for('link_email'))
+    return render_template('link_email.html', unlinked=unlinked)
 
 @app.route('/image')
 def view_image():

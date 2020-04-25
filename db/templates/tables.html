@@ -17,7 +17,7 @@
           <tr>
             {% for field in row %}
               {% if col_type[field] != 'auto' %}
-                {% if col_type[field] == 'foreign' %}
+                {% if (col_type[field] == 'foreign') or (col_type[field] == 'foreign_null') %}
                   <td>{{ named_keys[field][row[field]] }} ({{ row[field] }})</td>
                 {% else %}
                   <td>{{ row[field] }}</td>

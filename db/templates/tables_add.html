@@ -16,7 +16,7 @@
         <tr>
           {% for field in row %}
             {% if col_type[field] != 'auto' %}
-              {% if col_type[field] == 'foreign' %}
+              {% if (col_type[field] == 'foreign') or (col_type[field] == 'foreign_null') %}
                 <td>{{ named_keys[field][row[field]] }} ({{ row[field] }})</td>
               {% else %}
                 <td>{{ row[field] }}</td>
@@ -30,8 +30,11 @@
       <tr>
         {% for field in result[0] %}
           {% if col_type[field] != 'auto' %}
-            {% if col_type[field] == 'foreign' %}
+            {% if (col_type[field] == 'foreign') or (col_type[field] == 'foreign_null') %}
               <td><select name={{field}}>
+                {% if col_type[field] == 'foreign_null' %}
+                  <option value="NULL"> NULL </option>
+                {% endif %}
                 {% for key, name in named_keys[field].items() %}
                   <option value="{{key}}">{{ name }} ({{ key }})</option>
                 {% endfor %}

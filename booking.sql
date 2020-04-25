@@ -4,15 +4,15 @@ CREATE TABLE if not exists clients (
   client_id SERIAL PRIMARY KEY,
   name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
-  dob DATE NOT NULL,
+  dob DATE,
   phone_1 VARCHAR(25) NOT NULL,
   phone_2 VARCHAR(25),
-  address_1 VARCHAR(150) NOT NULL,
+  address_1 VARCHAR(150),
   address_2 VARCHAR(150),
   address_3 VARCHAR(150),
-  city VARCHAR(80) NOT NULL,
+  city VARCHAR(80),
   county VARCHAR(50),
-  postcode VARCHAR(10) NOT NULL
+  postcode VARCHAR(10)
 );
 INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
 VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
