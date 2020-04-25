@@ -26,7 +26,8 @@
             {% endfor %}
             {% for field in row %}
               {% if col_type[field] == 'auto' %}
-                <td><button type="submit" name="delete" value="{{row[field]}}"> Delete </button></td>
+                <td><button type="submit" name="edit" value="{{row[field]}}">Edit</button></td>
+                <td><button type="submit" name="delete" value="{{row[field]}}">Delete</button></td>
               {% endif %}
             {% endfor %}
           </tr>

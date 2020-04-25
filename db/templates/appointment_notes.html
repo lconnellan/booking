@@ -10,7 +10,8 @@
   {% endmacro %}
   <div class="main">
     <form method="POST">
-      <h2>Appointment notes for {{booking['name']}} with {{booking['client_id']}}</h2>
+      <h2>Appointment notes for {{booking['name']}} with
+      {{named_keys['client_id'][booking['client_id']]}}</h2>
       {% if notes %}
         <div class="notes">
         <table id="notes"><tbody>
@@ -35,19 +36,29 @@
       {% else %}
         <h2>No notes for selected appointment</h2>
       {% endif %}
-      Description: {{booking['descr']}} <br>
-      {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
-      Payment status: <input type="number" name="price" min="0" value="{{booking['price']}}" max='999'>
-      <select name="pay_status">
-        <option value="{{booking['pay_status']}}">{{ capitalize(booking['pay_status']) }}</option>
-        {% for status in statuses %}
-          {% if status != booking['pay_status'] %}
-            <option value="{{status}}">{{ capitalize(status) }}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-      <td><button type=submit" name="submit">Submit Changes</button></td>
-      <td><button type=submit" name="invoice">Print invoice</button></td> <br> <br>
+      <div class="app">
+      <table><tbody>
+      <tr>
+        <td bgcolor="lightgrey"><b>Description</b></td>
+        <td>{{booking['descr']}}</td>
+      </tr>
+      <tr>
+        {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
+        <td bgcolor="lightgrey"><b>Payment status</b></td>
+        <td><input type="number" name="price" min="0" value="{{booking['price']}}"
+        max='999'></td>
+        <td><select name="pay_status">
+          <option value="{{booking['pay_status']}}">{{ capitalize(booking['pay_status']) }}</option>
+          {% for status in statuses %}
+            {% if status != booking['pay_status'] %}
+              <option value="{{status}}">{{ capitalize(status) }}</option>
+            {% endif %}
+          {% endfor %}
+        </select></td>
+        <td><button type=submit" name="submit">Submit Changes</button></td>
+        <td><button type=submit" name="invoice">Print invoice</button></td>
+      </tbody></table>
+      </div>
       <button type="submit" name="add"> Add new note </button>
       <button type="submit" name="return"> Return to diary </button>
     </form>

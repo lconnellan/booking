@@ -281,6 +281,8 @@ def tables(table):
     if request.method == 'POST':
         if 'add' in request.form:
             return redirect(url_for('tables_add', table=table))
+        elif 'edit' in request.form:
+            return redirect(url_for('tables_edit', table=table, row_id=request.form['edit']))
         elif 'delete' in request.form:
             # delete using the primary key (which is identified by 'auto')
             col_type = res[1]
@@ -296,7 +298,7 @@ def tables(table):
             return redirect(url_for('tables', table=table))
     return render_template('tables.html', result=res[0], col_type=res[1], named_keys=res[2])
 
-@app.route('/database/<table>_add', methods=['GET', 'POST'])
+@app.route('/database/<table>/add', methods=['GET', 'POST'])
 @auth_required(level=2)
 def tables_add(table):
     db = Database()
@@ -318,11 +320,40 @@ def tables_add(table):
                     else:
                         fieldnames += ', ' + fieldname
                         values += ', ' + value
-            query = "INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values)
             db.cur.execute("INSERT IGNORE INTO %s (%s) VALUES (%s);" % (table, fieldnames, values))
             db.con.commit()
             return redirect(url_for('tables', table=table))
     return render_template('tables_add.html', result=res[0], col_type=res[1], named_keys=res[2])
+
+@app.route('/database/<table>/edit/<row_id>', methods=['GET', 'POST'])
+@auth_required(level=2)
+def tables_edit(table, row_id):
+    db = Database()
+    res = db.list_table(table)
+    if request.method == 'POST':
+        if request.form['submit'] == 'yes':
+            first = True
+            # compose a string of inputs to put into database
+            for fieldname, value in request.form.items():
+                if fieldname != 'submit':
+                    col_type = res[1]
+                    if col_type[fieldname] == 'str':
+                        value = "'" + value + "'"
+                    # first entry doesn't need preceeding comma
+                    if first:
+                        updates = fieldname + ' = ' + value
+                        first = False
+                    else:
+                        updates += ', ' + fieldname + ' = ' + value
+            # update using the primary key (which is identified by 'auto')
+            col_type = res[1]
+            auto_field = [field for field in col_type if col_type[field] == 'auto'][0]
+            db.cur.execute("UPDATE %s SET %s WHERE %s = %s;" % (table, updates, auto_field, \
+                           row_id))
+            db.con.commit()
+            return redirect(url_for('tables', table=table))
+    return render_template('tables_edit.html', result=res[0], col_type=res[1], named_keys=res[2],
+                           row_id=row_id)
 
 @app.route('/treatments', methods=['GET', 'POST'])
 def treatments():
