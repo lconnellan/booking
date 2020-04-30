@@ -446,14 +446,12 @@ def time_slots(date, day):
     # subtract booked periods from available ones
     for a in avails_i:
         now = datetime.now()
-        # remove times that have already happened
-        a[0] = a[0] - intervals.closedopen(now - timedelta(hours=24), now)
-        # restrict to 12 hours in advance for non admin
         if 'access_lvl' in session:
             if session['access_lvl'] < 2:
-                a[0] = a[0] - intervals.closedopen(now, now + timedelta(hours=12))
+                # restrict to 12 hours in advance for non admin
+                a[0] = a[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
         else:
-            a[0] = a[0] - intervals.closedopen(now, now + timedelta(hours=12))
+            a[0] = a[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
         for b in bookings_i:
             if a[1] == b[1]:
                 a[0] = a[0] - b[0]
@@ -510,7 +508,7 @@ def dates():
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
     db = Database()
-    time_slots = time_slots(session['date'], session['day'])[0]
+    t_slots = time_slots(session['date'], session['day'])[0]
     if request.method == 'POST':
         res = ast.literal_eval(request.form['time_slot'])
         session['time_slot'] = res[0]
@@ -528,7 +526,7 @@ def booking():
         session['pracs'] = pracs
         return redirect(url_for('practitioner_choice'))
 
-    return render_template('booking.html', time_slots=time_slots)
+    return render_template('booking.html', time_slots=t_slots)
 
 @app.route('/practitioner_choice', methods=['GET', 'POST'])
 @auth_required(level=0)
@@ -947,6 +945,8 @@ def new_client():
                        auth_key, client_id, prac_id) VALUES('dummy', '', -1, 'dummy', %s, NULL)", \
                        client_id)
         db.con.commit()
+        session['treatment'] = 'First appointment'
+        session['treat_id'] = 1
         return redirect(url_for('client_choice', client_id=client_id))
     return render_template('new_client.html')
 

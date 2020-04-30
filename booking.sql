@@ -53,6 +53,7 @@ CREATE TABLE if not exists bookings (
   end TIME NOT NULL,
   price DECIMAL(18,2) NOT NULL,
   pay_status ENUM('not paid', 'cash', 'card', 'invoice', 'insurance') NOT NULL,
+  pay_timestamp DATETIME,
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
   FOREIGN KEY (client_id) REFERENCES clients(client_id),
   FOREIGN KEY (treat_id) REFERENCES treatments(treat_id)
@@ -77,9 +78,9 @@ BEGIN
 END; //
 DELIMITER ;
 
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, descr, price, pay_status)
-VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 'arm pain', 40.00, 'not paid'),
-(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', NULL, 30.00, 'cash');
+INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, descr, price, pay_status, pay_timestamp)
+VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 'arm pain', 40.00, 'not paid', NULL),
+(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', NULL, 30.00, 'cash', NOW());
 
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,

@@ -56,6 +56,7 @@
             <th>Price (£)</th>
             {% if access_lvl == 2 %}
               <th>Payment Status</th>
+              <th>Payment Timestamp</th>
               <th>Submit Changes</th>
               <th>Print Invoice</th>
               <th>Notes</th>
@@ -86,6 +87,7 @@
                     {% endfor %}
                   </select>
                 </td>
+                <td>{{row['pay_timestamp']}}</td>
                 <td><button type="submit" name="submit" value="{{row['booking_id']}}"> Submit </button></td>
                 <td><input type="checkbox" name="invoice" value="{{row['booking_id']}}"></td>
                 <td><button type="submit" name="view" value="{{row['booking_id']}}"> View Notes </button></td>
@@ -102,7 +104,7 @@
             </tr>
           {% endfor %}
           <tr>
-            <td colspan="10"> </td>
+            <td colspan="11"> </td>
             <td><button type=submit" name="invoice-submit">Submit</button></td>
             <td colspan="2"> </td>
           </tr>
