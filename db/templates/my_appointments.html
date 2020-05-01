@@ -13,23 +13,46 @@
     length = table.rows[0].cells.length;
 
     // Loop through all table rows, and hide those who don't match the search query
-    for (i = 1; i < tr.length-1; i++) {
+    {% for i in range (0, bookings|length) %}
       var found = 0;
-      for (j = 0; j < length; j++) {
-        td = tr[i].getElementsByTagName("td")[j];
-        if (td) {
-          txtValue = td.textContent || td.innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            found = 1;
-          }
-        }
+      if ("{{named_keys['prac_id'][bookings[i]['prac_id']]}}".toUpperCase().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{named_keys['client_id'][bookings[i]['client_id']]}}".toUpperCase().indexOf(filter)
+               > -1) {
+        found = 1;
+      }
+      if ("{{named_keys['treat_id'][bookings[i]['treat_id']]}}".toUpperCase().indexOf(filter)
+          > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['name']}}".toString().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['start']}}".toString().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['end']}}".toString().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['descr']}}".toUpperCase().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['price']}}".toString().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['pay_status']}}".toUpperCase().indexOf(filter) > -1) {
+        found = 1;
+      }
+      else if ("{{bookings[i]['pay_timestamp']}}".toString().indexOf(filter) > -1) {
+        found = 1;
       }
       if (found == 1) {
-        tr[i].style.display = "";
+        tr[{{i+1}}].style.display = "";
       } else {
-        tr[i].style.display = "none";
+        tr[{{i+1}}].style.display = "none";
       }
-    }
+    {% endfor %}
   }
   </script>
 {% endblock %}
