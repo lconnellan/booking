@@ -653,6 +653,9 @@ def my_appointments():
             pay_status = 'pay_status' + request.form['submit']
             db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
                            (request.form[pay_status], request.form['submit']) )
+            if request.form[pay_status] != 'not paid':
+                db.cur.execute("UPDATE bookings SET pay_timestamp = NOW() WHERE booking_id = %s", \
+                               request.form['submit'] )
             price = 'price' + request.form['submit']
             db.cur.execute("UPDATE bookings SET price = %s WHERE booking_id = %s", \
                            (request.form[price], request.form['submit']) )
@@ -789,6 +792,9 @@ def appointment_notes(booking_id):
     if 'submit' in request.form:
         db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
                        (request.form['pay_status'], booking_id) )
+        if request.form['pay_status'] != 'not paid':
+            db.cur.execute("UPDATE bookings SET pay_timestamp = NOW() WHERE booking_id = %s", \
+                               booking_id )
         db.cur.execute("UPDATE bookings SET price = %s WHERE booking_id = %s", \
                        (request.form['price'], booking_id) )
         db.con.commit()
