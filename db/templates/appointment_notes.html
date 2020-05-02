@@ -8,7 +8,7 @@
   {% macro capitalize(text) %}
       {{ text[0]|upper}}{{text[1:] }}
   {% endmacro %}
-  <div class="main">
+  <div class="main-wide">
     <form method="POST">
       <h2>Appointment notes for {{booking['name']}} with
       {{named_keys['client_id'][booking['client_id']]}}</h2>
@@ -55,7 +55,6 @@
             {% endif %}
           {% endfor %}
         </select></td>
-        <td>{{booking['pay_timestamp']}}</td>
         <td><button type=submit" name="submit">Submit Changes</button></td>
         <td><button type=submit" name="invoice">Print invoice</button></td>
       </tbody></table>

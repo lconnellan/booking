@@ -1,13 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Client Notes{% endblock %}
+{% block title %}Client Info{% endblock %}
 {% block head %}
 
 {% endblock %}
 
 {% block main %}
-  <div class="main">
+  {% macro capitalize(text) %}
+    {{ text[0]|upper}}{{text[1:] }}
+  {% endmacro %}
+  <div class="main-wide">
+    {% if bookings %}
+      <h2>Appointment details for {{client_name}}</h2>
+    {% endif %}
     {% if notes %}
-      <h2>Appointment notes for {{named_keys['client_id'][notes[0]['client_id']]}}</h2>
       <div class="notes">
       <table id="notes"><tbody>
         <tr>
@@ -26,6 +31,51 @@
       </div>
     {% else %}
       <h2>No notes for selected client.</h2>
+    {% endif %}
+    <br>
+    {% if bookings %}
+      <table id="notes"><tbody>
+      <form method='POST'>
+      <tr>
+        <th>Booking date</th>
+        <th>Price</th>
+        <th>Pay Status</th>
+        <th>Pay Timestamp</th>
+        <th>Print Invoice</th>
+        <th>Submit Changes</th>
+      </tr>
+      {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
+      {% for booking in bookings %}
+        <tr>
+          <td>{{booking['name']}}</td>
+          <td><input type="number" name={{"price"+booking['booking_id']|string}} min="0"
+              value="{{booking['price']}}" max='999'></td>
+          {% set statuses = ['not paid', 'cash', 'card', 'invoice', 'insurance'] %}
+          <td>
+            <select name="{{"pay_status"+booking['booking_id']|string}}">
+              <option value="{{booking['pay_status']}}">{{ capitalize(booking['pay_status'])}}
+              </option>
+              {% for status in statuses %}
+                {% if status != booking['pay_status'] %}
+                  <option value="{{status}}">{{ capitalize(status) }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </td>
+          <td>{{booking['pay_timestamp']}}</td>
+          <td><input type="checkbox" name="invoice" value="{{booking['booking_id']}}"></td>
+          <td><button type="submit" name="submit" value="{{booking['booking_id']}}"> Submit
+            </button></td>
+        </tr>
+      {% endfor %}
+      <tr>
+        <td colspan="4"> </td>
+        <td><button type=submit" name="invoice-submit">Submit</button></td>
+        <td> </td>
+      </tr>
+      </form>
+      </tbody></table>
+      <b>Total paid</b>: {{paid_total}}.&nbsp; <b>Overall total</b>: {{total}}
     {% endif %}
   </div>
 {% endblock %}

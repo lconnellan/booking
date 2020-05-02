@@ -180,7 +180,7 @@ def create_account():
                            forms['phone_2'], forms['address_1'], forms['address_2'], \
                            forms['address_3'], forms['city'], forms['county'], forms['postcode']))
             db.con.commit()
-            db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
+            db.cur.execute("SELECT client_id FROM clients ORDER BY client_id desc limit 1;")
             client_id = db.cur.fetchall()[0]['client_id']
             db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, \
                            auth_key, client_id, prac_id) VALUES(%s, %s, -1, %s, %s, NULL)", \
@@ -378,7 +378,7 @@ def treatments():
     # create treatment links
     if request.method == 'POST':
         session['treatment'] = request.form['type']
-        db.cur.execute("SELECT treat_id, duration, price FROM treatments where \
+        db.cur.execute("SELECT treat_id, duration, price FROM treatments WHERE \
                        name = %s", (session['treatment'], ))
         res = db.cur.fetchall()[0]
         session['duration'] = str(res['duration'])
@@ -631,10 +631,10 @@ def my_appointments():
     client_id = res[0]['client_id']
     prac_id = res[0]['prac_id']
     if client_id == None:
-        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s order by name desc" \
+        db.cur.execute("SELECT * FROM bookings WHERE prac_id = %s ORDER BY name desc" \
                        % str(prac_id))
     else:
-        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s order by name desc" \
+        db.cur.execute("SELECT * FROM bookings WHERE client_id = %s ORDER BY name desc" \
                        % str(client_id))
     bookings = db.cur.fetchall()
     res = db.list_table('bookings')
@@ -883,24 +883,54 @@ def client_note():
         return redirect(url_for('client_notes_view', client_id=request.form['client_id']))
     return render_template('client_note.html', clients=clients)
 
-@app.route('/client_notes/<client_id>')
+@app.route('/client_notes/<client_id>', methods=['GET', 'POST'])
 @auth_required(level=2)
 def client_notes_view(client_id):
     db = Database()
-    db.cur.execute("SELECT * FROM notes where notes.client_id = %s" % client_id)
+    db.cur.execute("SELECT * FROM clients WHERE client_id = %s" % client_id)
+    res = db.cur.fetchall()[0]
+    client_name = res['name'] + ' ' + res['surname']
+    db.cur.execute("SELECT * FROM notes WHERE notes.client_id = %s" % client_id)
     notes = db.cur.fetchall()
-    res = db.list_table('notes')
-    return render_template('client_notes_view.html', notes=notes, col_type=res[1], \
-                           named_keys=res[2])
+    db.cur.execute("SELECT * FROM bookings WHERE bookings.client_id = %s ORDER BY name desc" \
+                   % client_id)
+    bookings = db.cur.fetchall()
+    db.cur.execute("SELECT * FROM bookings WHERE bookings.client_id = %s AND bookings.pay_status \
+                   != 'not paid'" % client_id)
+    paid_bookings = db.cur.fetchall()
+    total = 0
+    for b in bookings:
+        total += b['price']
+    paid_total = 0
+    for b in paid_bookings:
+        paid_total += b['price']
+    if request.method == 'POST':
+        if 'submit' in request.form:
+            pay_status = 'pay_status' + request.form['submit']
+            db.cur.execute("UPDATE bookings SET pay_status = %s WHERE booking_id = %s", \
+                           (request.form[pay_status], request.form['submit']) )
+            if request.form[pay_status] != 'not paid':
+                db.cur.execute("UPDATE bookings SET pay_timestamp = NOW() WHERE booking_id = %s", \
+                               request.form['submit'] )
+            price = 'price' + request.form['submit']
+            db.cur.execute("UPDATE bookings SET price = %s WHERE booking_id = %s", \
+                           (request.form[price], request.form['submit']) )
+            db.con.commit()
+            return redirect(url_for('client_notes_view', client_id=client_id))
+        elif 'invoice-submit' in request.form:
+            id_list = request.form.getlist('invoice')
+            return redirect(url_for('invoice', id_list=id_list))
+    return render_template('client_notes_view.html', notes=notes, bookings=bookings, total=total, \
+                           paid_total=paid_total, client_name=client_name)
 
 @app.route('/block_periods', methods=['GET', 'POST'])
 @auth_required(level=2)
 def block_periods():
     db = Database()
-    db.cur.execute("SELECT prac_id from users WHERE email = %s", (session['email']))
+    db.cur.execute("SELECT prac_id FROM users WHERE email = %s", (session['email']))
     res = db.cur.fetchall()
     prac_id = res[0]['prac_id']
-    db.cur.execute("SELECT * FROM blocked_periods where blocked_periods.prac_id = %s" \
+    db.cur.execute("SELECT * FROM blocked_periods WHERE blocked_periods.prac_id = %s" \
                    % str(prac_id))
     blocked = db.cur.fetchall()
     res = db.list_table('blocked_periods')
@@ -945,7 +975,7 @@ def new_client():
                        forms['phone_2'], forms['address_1'], forms['address_2'], \
                        forms['address_3'], forms['city'], forms['county'], forms['postcode']))
         db.con.commit()
-        db.cur.execute("SELECT client_id FROM clients order by client_id desc limit 1;")
+        db.cur.execute("SELECT client_id FROM clients ORDER BY client_id desc limit 1;")
         client_id = db.cur.fetchall()[0]['client_id']
         db.cur.execute("INSERT IGNORE INTO users (email, password, access_lvl, \
                        auth_key, client_id, prac_id) VALUES('dummy', '', -1, 'dummy', %s, NULL)", \
