@@ -438,12 +438,12 @@ def time_slots(dat, day):
     for avail in avails:
         if avail[4] == 'biweekly':
             # calculate current week relative to mon 23 mar
-            if (date_dt.date() - date(2020, 3, 23)).days % 14 >= 7:
+            if (date_dt.date() - date(2020, 3, 23)).days % 14 < 7:
                 if day == avail[0]:
                     avail[0] = date_dt
                     valid_avails.append(avail)
         elif avail[4] == 'biweekly-odd':
-            if (date_dt.date() - date(2020, 3, 23)).days % 14 < 7:
+            if (date_dt.date() - date(2020, 3, 23)).days % 14 >= 7:
                 if day == avail[0]:
                     avail[0] = date_dt
                     valid_avails.append(avail)
@@ -749,9 +749,9 @@ def my_diary(week):
             for k in range(1, duration):
                 b_table[i+k][j] = ['filler', 1, 0]
     for b in avails:
-        if b['freq'] == 'biweekly' and (monday - date(2020, 3, 23)).days % 14 < 7:
+        if b['freq'] == 'biweekly' and (monday - date(2020, 3, 23)).days % 14 >= 7:
             pass
-        elif b['freq'] == 'biweekly-odd' and (monday - date(2020, 3, 23)).days % 14 >= 7:
+        elif b['freq'] == 'biweekly-odd' and (monday - date(2020, 3, 23)).days % 14 < 7:
             pass
         else:
             j = time2.strptime(b['day'], "%A").tm_wday
