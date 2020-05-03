@@ -396,10 +396,10 @@ def datetime_range(start, end, delta):
 
 def interval_conversion(list, avail=False):
     """Converts time data into interval format"""
-    intervals_list = []
     dur_h = int(session['duration'].split('.')[0])
     dur_m = int(session['duration'].split('.')[1])
     duration = timedelta(hours=dur_h, minutes=dur_m)
+    intervals_list = []
     for l in list:
         if avail:
             intervals_list.append([intervals.closed(
@@ -412,52 +412,64 @@ def interval_conversion(list, avail=False):
                                   datetime.combine(l[0], l[2])), l[3]])
     return intervals_list
 
-def time_slots(date, day):
+def time_slots(dat, day):
     db = Database()
     # fetch list of availabilities
-    db.cur.execute("SELECT day, start, end, prac_id FROM avails")
+    db.cur.execute("SELECT * FROM avails")
     avails = [[entry['day'], (datetime.min + entry['start']).time(),
                              (datetime.min + entry['end']).time(),
-               entry['prac_id']] for entry in db.cur.fetchall()]
+               entry['prac_id'], entry['freq']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
-    db.cur.execute("SELECT name, start, end, prac_id FROM bookings")
+    db.cur.execute("SELECT * FROM bookings")
     bookings = [[entry['name'], (datetime.min + entry['start']).time(),
                                 (datetime.min + entry['end']).time(),
                  entry['prac_id']] for entry in db.cur.fetchall()]
     # fetch list of blocked periods
-    db.cur.execute("SELECT date, start, end, prac_id FROM blocked_periods")
+    db.cur.execute("SELECT * FROM blocked_periods")
     blocked = [[entry['date'], (datetime.min + entry['start']).time(),
                                (datetime.min + entry['end']).time(),
                 entry['prac_id']] for entry in db.cur.fetchall()]
 
     # fetch availabilities for current day
     valid_avails = []
-    for a in avails:
-        if day == a[0]:
-            a[0] = datetime(int(date.split('-')[0]),
-                            int(date.split('-')[1]),
-                            int(date.split('-')[2]))
-            valid_avails.append(a)
+    date_dt = datetime(int(dat.split('-')[0]),
+                       int(dat.split('-')[1]),
+                       int(dat.split('-')[2]))
+    for avail in avails:
+        if avail[4] == 'biweekly':
+            # calculate current week relative to mon 23 mar
+            if (date_dt.date() - date(2020, 3, 23)).days % 14 >= 7:
+                if day == avail[0]:
+                    avail[0] = date_dt
+                    valid_avails.append(avail)
+        elif avail[4] == 'biweekly-odd':
+            if (date_dt.date() - date(2020, 3, 23)).days % 14 < 7:
+                if day == avail[0]:
+                    avail[0] = date_dt
+                    valid_avails.append(avail)
+        elif day == avail[0]:
+            avail[0] = date_dt
+            valid_avails.append(avail)
     if not valid_avails:
         return [], 0
     avails_i = interval_conversion(valid_avails, avail=True)
     bookings_i = interval_conversion(bookings)
     blocked_i = interval_conversion(blocked)
     # subtract booked periods from available ones
-    for a in avails_i:
+    for avail in avails_i:
         now = datetime.now()
         if 'access_lvl' in session:
             if session['access_lvl'] < 2:
                 # restrict to 12 hours in advance for non admin
-                a[0] = a[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
+                avail[0] = avail[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
         else:
-            a[0] = a[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
-        for b in bookings_i:
-            if a[1] == b[1]:
-                a[0] = a[0] - b[0]
-        for b in blocked_i:
-            if a[1] == b[1]:
-                a[0] = a[0] - b[0]
+            avail[0] = avail[0] - intervals.closedopen(datetime.min, now + timedelta(hours=12))
+        for booking in bookings_i:
+            if avail[1] == booking[1]:
+                avail[0] = avail[0] - booking[0]
+        for blocked in blocked_i:
+            if avail[1] == blocked[1]:
+                avail[0] = avail[0] - blocked[0]
 
     # generate list of all possible times in a day
     time_slots = [dt for dt in
@@ -737,18 +749,23 @@ def my_diary(week):
             for k in range(1, duration):
                 b_table[i+k][j] = ['filler', 1, 0]
     for b in avails:
-        j = time2.strptime(b['day'], "%A").tm_wday
-        bstart = (datetime.min + b['start']).time()
-        duration = int((b['end'] - b['start']).seconds/(30*60))
-        if bstart == start_time:
-            i = 0
+        if b['freq'] == 'biweekly' and (monday - date(2020, 3, 23)).days % 14 < 7:
+            pass
+        elif b['freq'] == 'biweekly-odd' and (monday - date(2020, 3, 23)).days % 14 >= 7:
+            pass
         else:
-            bdstart = datetime.combine(today, bstart)
-            start_datetime = datetime.combine(today, start_time)
-            i = int((bdstart - start_datetime).seconds/(30*60))
-        for k in range(0, duration):
-            if b_table[i+k][j] == 0:
-                b_table[i+k][j] = ['free', 1, 1]
+            j = time2.strptime(b['day'], "%A").tm_wday
+            bstart = (datetime.min + b['start']).time()
+            duration = int((b['end'] - b['start']).seconds/(30*60))
+            if bstart == start_time:
+                i = 0
+            else:
+                bdstart = datetime.combine(today, bstart)
+                start_datetime = datetime.combine(today, start_time)
+                i = int((bdstart - start_datetime).seconds/(30*60))
+            for k in range(0, duration):
+                if b_table[i+k][j] == 0:
+                    b_table[i+k][j] = ['free', 1, 1]
     times = [dt for dt in datetime_range(datetime.combine(today, time(hour=9)), \
              datetime.combine(today, time(hour=20, minute=55)), \
              timedelta(seconds=30*60))]
@@ -997,7 +1014,6 @@ def link_email():
         db.cur.execute("SELECT * FROM clients WHERE client_id = %s", u['client_id'])
         unlinked.append(db.cur.fetchall()[0])
     if request.method == 'POST':
-        print(request.form)
         email = request.form['email']
         client_id = request.form['client_id']
         db.cur.execute("SELECT * FROM clients WHERE client_id = %s", client_id)

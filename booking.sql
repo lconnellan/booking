@@ -88,6 +88,7 @@ CREATE TABLE if not exists avails (
   day ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
   start TIME NOT NULL,
   end TIME NOT NULL,
+  freq ENUM('weekly', 'biweekly', 'biweekly-odd'),
   FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
 );
 
@@ -111,18 +112,12 @@ END; //
 DELIMITER ;
 
 TRUNCATE avails;
-INSERT IGNORE INTO avails (prac_id, day, start, end)
-VALUES (1, 'Monday', '9:00', '17:00'),
-       (1, 'Tuesday', '16:00', '20:00'),
-       (1, 'Wednesday', '9:00', '17:00'),
-       (1, 'Thursday', '9:00', '16:00'),
-       (1, 'Friday', '9:00', '13:30'),
-       (1, 'Saturday', '9:00', '16:00'),
-       (2, 'Monday', '9:00', '17:00'),
-       (2, 'Wednesday', '9:00', '17:00'),
-       (2, 'Thursday', '9:00', '16:00'),
-       (2, 'Friday', '9:00', '13:30'),
-       (2, 'Saturday', '9:00', '16:00');
+INSERT IGNORE INTO avails (prac_id, day, start, end, freq)
+VALUES (1, 'Tuesday', '16:00', '20:00', 'weekly'),
+       (1, 'Thursday', '9:00', '16:00', 'weekly'),
+       (1, 'Saturday', '9:00', '16:00', 'weekly'),
+       (2, 'Monday', '9:00', '17:00', 'biweekly'),
+       (2, 'Friday', '9:00', '13:30', 'weekly');
 
 CREATE TABLE if not exists blocked_periods (
   bp_id SERIAL PRIMARY KEY,
