@@ -82,14 +82,24 @@ INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, sta
 VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 'arm pain', 40.00, 'not paid', NULL),
 (2, 1, 3, 2, '2020-02-01', '9:30', '10:30', NULL, 30.00, 'cash', NOW());
 
+CREATE TABLE if not exists freqs (
+  freq_id SERIAL PRIMARY KEY,
+  name VARCHAR(30) NOT NULL
+);
+
+TRUNCATE freqs;
+INSERT IGNORE INTO freqs (name)
+VALUES ('weekly'), ('biweekly'), ('biweekly-odd');
+
 CREATE TABLE if not exists avails (
   avail_id SERIAL PRIMARY KEY,
   prac_id BIGINT UNSIGNED NOT NULL,
   day ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
   start TIME NOT NULL,
   end TIME NOT NULL,
-  freq ENUM('weekly', 'biweekly', 'biweekly-odd'),
-  FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id)
+  freq_id BIGINT UNSIGNED NOT NULL,
+  FOREIGN KEY (prac_id) REFERENCES practitioners(prac_id),
+  FOREIGN KEY (freq_id) REFERENCES freqs(freq_id)
 );
 
 DELIMITER //
@@ -112,12 +122,12 @@ END; //
 DELIMITER ;
 
 TRUNCATE avails;
-INSERT IGNORE INTO avails (prac_id, day, start, end, freq)
-VALUES (1, 'Tuesday', '16:00', '20:00', 'weekly'),
-       (1, 'Thursday', '9:00', '16:00', 'weekly'),
-       (1, 'Saturday', '9:00', '16:00', 'weekly'),
-       (2, 'Monday', '9:00', '17:00', 'biweekly'),
-       (2, 'Friday', '9:00', '13:30', 'weekly');
+INSERT IGNORE INTO avails (prac_id, day, start, end, freq_id)
+VALUES (1, 'Tuesday', '16:00', '20:00', 1),
+       (1, 'Thursday', '9:00', '16:00', 1),
+       (1, 'Saturday', '9:00', '16:00', 1),
+       (2, 'Monday', '9:00', '17:00', 2),
+       (2, 'Friday', '9:00', '13:30', 1);
 
 CREATE TABLE if not exists blocked_periods (
   bp_id SERIAL PRIMARY KEY,

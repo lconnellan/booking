@@ -119,15 +119,18 @@ def error(error):
 def login():
     db = Database()
     if request.method == 'POST':
-        if request.form['next'] == 'login':
+        if request.form['submit'] == 'login':
             success = db.authenticate(request.form['email'], request.form['password'])
             if success:
-                return redirect(request.args.get('next') or url_for('index'))
+                if request.args.get('next') == 'login':
+                    return redirect(url_for('index'))
+                else:
+                    return redirect(request.args.get('next') or url_for('index'))
             else:
                 return redirect(url_for('login', next=request.args.get('next')))
-        if request.form['next'] == 'create':
+        if request.form['submit'] == 'create':
             return redirect(url_for('create_account'))
-        if request.form['next'] == 'reset':
+        if request.form['submit'] == 'reset':
             return redirect(url_for('reset_password'))
     return render_template('login.html')
 
@@ -415,10 +418,12 @@ def interval_conversion(list, avail=False):
 def time_slots(dat, day):
     db = Database()
     # fetch list of availabilities
+    db.cur.execute("SELECT * FROM freqs ORDER BY freq_id ASC")
+    freqs = db.cur.fetchall()
     db.cur.execute("SELECT * FROM avails")
     avails = [[entry['day'], (datetime.min + entry['start']).time(),
                              (datetime.min + entry['end']).time(),
-               entry['prac_id'], entry['freq']] for entry in db.cur.fetchall()]
+               entry['prac_id'], freqs[entry['freq_id']-1]['name']] for entry in db.cur.fetchall()]
     # fetch list of existing bookings
     db.cur.execute("SELECT * FROM bookings")
     bookings = [[entry['name'], (datetime.min + entry['start']).time(),
@@ -749,9 +754,11 @@ def my_diary(week):
             for k in range(1, duration):
                 b_table[i+k][j] = ['filler', 1, 0]
     for b in avails:
-        if b['freq'] == 'biweekly' and (monday - date(2020, 3, 23)).days % 14 >= 7:
+        db.cur.execute("SELECT * FROM freqs WHERE freq_id = %s", (b['freq_id']))
+        freq = db.cur.fetchall()[0]['name']
+        if freq == 'biweekly' and (monday - date(2020, 3, 23)).days % 14 >= 7:
             pass
-        elif b['freq'] == 'biweekly-odd' and (monday - date(2020, 3, 23)).days % 14 < 7:
+        elif freq == 'biweekly-odd' and (monday - date(2020, 3, 23)).days % 14 < 7:
             pass
         else:
             j = time2.strptime(b['day'], "%A").tm_wday
