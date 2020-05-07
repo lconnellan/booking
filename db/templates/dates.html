@@ -5,47 +5,62 @@
   <div class="main">
     <h2>Please choose a date.</h2>
     <meta charset="UTF-8">
-    <table id="date" style="width:100%"><tbody>
-      <form method="POST">
+    <form method="POST">
+      <table id="dateTable" style="width:100%"><tbody>
       {% if date_range %}
-        <tr>
-        {% for i in range (0, 7) %}
-          {% if avails[i] == 'True' %}
-            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
-          {% else %}
-            <td> {{date_range[i]}} </td>
-          {% endif %}
+        {% for j in range (0, 4) %}
+          <tr>
+          {% for i in range (0, 7) %}
+            {% if avails[7*j+i] == 'True' %}
+              <td> <button type="submit" name="date" value="{{date_range[7*j+i]}}">
+                    {{ date_range[7*j+i] }} </button> </td>
+            {% else %}
+              <td> {{date_range[7*j+i]}} </td>
+            {% endif %}
+          {% endfor %}
+          </tr>
         {% endfor %}
-        </tr>
         <tr>
-        {% for i in range (7, 14)%}
-          {% if avails[i] == 'True' %}
-            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
-          {% else %}
-            <td> {{date_range[i]}} </td>
-          {% endif %}
-        {% endfor %}
-        </tr>
-        <tr>
-        {% for i in range (14, 21)%}
-          {% if avails[i] == 'True' %}
-            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
-          {% else %}
-            <td> {{date_range[i]}} </td>
-          {% endif %}
-        {% endfor %}
-        </tr>
-        <tr>
-        {% for i in range (21, 28)%}
-          {% if avails[i] == 'True' %}
-            <td> <button type="submit" name="date" value="{{date_range[i]}}"> {{ date_range[i] }} </button> </td>
-          {% else %}
-            <td> {{date_range[i]}} </td>
-          {% endif %}
-        {% endfor %}
-        </tr>
       {% endif %}
-      </form>
-    </tbody></table>
+      </tbody></table>
+      <br>
+    </form>
+    <center><button id="showButton1" onClick="showMore1();">Show More</button></center>
+    <center><button style="display: none;" id="showButton2" onClick="showMore2();">Show More
+      </button></center>
+    <center><button style="display: none;" id="showButton3" onClick="showMore3();">Show More
+      </button></center>
+    <center><button style="display: none;" id="showButton4" onClick="showMore4();">Show More
+      </button></center>
   </div>
+  <script>
+    {% for j in range(1, 5) %}
+      function showMore{{j}}(){
+        var table = document.getElementById("dateTable");
+        {% for k in range(0, 4) %}
+          var currentRow = table.insertRow(-1);
+
+          {% for i in range(0, 7) %}
+            {% if avails[7*(4*j + k) + i] == 'True' %}
+              var dateButton = document.createElement("button");
+              dateButton.setAttribute("name", "date");
+              dateButton.setAttribute("value", "{{date_range[7*(4*j + k) + i]}}");
+              dateButton.innerHTML = "{{date_range[7*(4*j + k) + i]}}";
+            {% else %}
+              var dateButton = document.createTextNode("{{date_range[7*(4*j + k) + i]}}");
+            {% endif %}
+
+            var currentCell = currentRow.insertCell(-1);
+            currentCell.appendChild(dateButton);
+          {% endfor %}
+        {% endfor %}
+        var showButton = document.getElementById("showButton{{j}}");
+        if (showButton){
+          showButton.style.display = "none";
+          var nextButton = document.getElementById("showButton{{j+1}}");
+          nextButton.style.display = "block";
+        }
+      };
+    {% endfor %}
+  </script>
 {% endblock %}

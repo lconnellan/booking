@@ -498,7 +498,7 @@ def dates():
     today = date.today()
     monday = today - timedelta(days=today.weekday())
     date_range = [monday]
-    for n in range(1, 28):
+    for n in range(1, 7*16):
         date_range.append(monday + timedelta(days=n))
     # format it nicely
     date_range_f = [d.strftime("%A %d %B") for d in date_range]
@@ -514,7 +514,7 @@ def dates():
 
     # reobtain original date from user input and store it
     if request.method == 'POST':
-        for n in range(0, 28):
+        for n in range(0, 7*16):
             if date_range_f[n] == request.form['date']:
                 day = n
         session['date'] = date_range[day].strftime('%Y-%m-%d')
