@@ -785,22 +785,26 @@ def my_diary(week):
         days_y.append((monday + timedelta(days=d)).strftime('%Y-%m-%d'))
 
     if request.method == 'POST':
-        db.cur.execute("SELECT prac_id FROM users WHERE email = %s", (session['email'], ))
-        session['prac_id'] = db.cur.fetchall()[0]['prac_id']
-        db.cur.execute("SELECT name, surname FROM practitioners \
-                       WHERE prac_id = %s" % session['prac_id'])
-        prac = db.cur.fetchall()[0]
-        session['prac'] = prac['name'] + ' ' + prac['surname']
-        session['treat_id'] = 2 # follow up session
-        session['date'] = days_y[int(request.form['date'])] # e.g. 2020-04-28
-        session['time_slot'] = request.form['time'] # e.g. 15:30
-        start = datetime.strptime(request.form['time'], '%H:%M')
-        end = start + timedelta(minutes=30)
-        session['end'] = end.strftime('%H:%M')
-        db.cur.execute("SELECT price FROM treatments WHERE treat_id = %s", session['treat_id'])
-        session['price'] = str(db.cur.fetchall()[0]['price'])
-        session['treatment'] = 'Follow-up appointment'
-        return redirect(url_for('client_choice'))
+        if 'go-to' in request.form:
+            goto = (datetime.strptime(request.form['go-to'], '%Y-%m-%d').date() - monday).days // 7
+            return redirect(url_for('my_diary', week=goto))
+        else:
+            db.cur.execute("SELECT prac_id FROM users WHERE email = %s", (session['email'], ))
+            session['prac_id'] = db.cur.fetchall()[0]['prac_id']
+            db.cur.execute("SELECT name, surname FROM practitioners \
+                           WHERE prac_id = %s" % session['prac_id'])
+            prac = db.cur.fetchall()[0]
+            session['prac'] = prac['name'] + ' ' + prac['surname']
+            session['treat_id'] = 2 # follow up session
+            session['date'] = days_y[int(request.form['date'])] # e.g. 2020-04-28
+            session['time_slot'] = request.form['time'] # e.g. 15:30
+            start = datetime.strptime(request.form['time'], '%H:%M')
+            end = start + timedelta(minutes=30)
+            session['end'] = end.strftime('%H:%M')
+            db.cur.execute("SELECT price FROM treatments WHERE treat_id = %s", session['treat_id'])
+            session['price'] = str(db.cur.fetchall()[0]['price'])
+            session['treatment'] = 'Follow-up appointment'
+            return redirect(url_for('client_choice'))
     return render_template('my_diary.html', booking=b_table, times=times, days=days, \
                            week=week, access_lvl=session['access_lvl'])
 

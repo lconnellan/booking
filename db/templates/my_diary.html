@@ -1,8 +1,15 @@
 {% extends "base.html" %}
-{% block title %}My Appointments - Visual{% endblock %}
+{% block title %}My Diary{% endblock %}
 
 {% block main %}
   <div class="main">
+    <h2>Diary of appointments</h2>
+    <form method='POST'>
+      <center>
+        <b>Go to date:</b><input type="date" name="go-to"></input>
+        <button type=submit>Submit</button>
+      <center>
+    </form>
     {% set weekint = week|int %}
     <meta charset="UTF-8">
     <table class="borderless" id="container"><tbody>

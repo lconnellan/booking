@@ -7,6 +7,9 @@
   {% endmacro %}
 
   <div class="mainflex">
+    <h2>Database</h2>
+  </div>
+  <div class="mainflex">
     {% for table in result %}
       <a href="{{ url_for('tables', table=table['Tables_in_booking']) }}">{{capitalize(table['Tables_in_booking'])}}</a>
     {% endfor %}
