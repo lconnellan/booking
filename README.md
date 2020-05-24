@@ -1,3 +1,5 @@
+## Summary
+
 Website for a booking system for an osteopathy clinic. Written in Python using Flask.
 
 Run using ./run.py
@@ -12,6 +14,8 @@ Run using ./run.py
 * Summary of client info & payments
 * Way to select periods of time to block off where no appointments can happen
 * Dynamically create new accounts during booking that can be linked to emails later
+
+## Example Screenshots
 
 ![Main page](screenshot.png)
 ![Client information](screenshot2.png)
