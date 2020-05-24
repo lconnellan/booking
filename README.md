@@ -17,6 +17,6 @@ Run using ./run.py
 
 ## Example Screenshots
 
-![Main page](screenshot.png)
-![Client information](screenshot2.png)
-![Booking process](screenshot3.png)
+![Main page](screenshot.png "Main page and menu")
+![Client information](screenshot2.png "Client information")
+![Booking process](screenshot3.png "Date selection during booking")
