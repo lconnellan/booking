@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, session, flash, make_response, send_file
+from flask import render_template, redirect, url_for, request, session, flash, send_file
 from flask_mail import Message
 import pymysql
 import hashlib
