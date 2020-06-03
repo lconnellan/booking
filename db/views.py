@@ -16,9 +16,9 @@ from db import app, mail
 
 class Database:
     def __init__(self):
-        host = '192.168.251.141'
-        user = "lloyd"
-        password = "cr1cket"
+        host = app.config.get('DB_IP')
+        user = app.config.get('DB_USER')
+        password = app.config.get('DB_PASS')
         db = "booking"
         self.con = pymysql.connect(host=host, user=user, password=password, \
                                    db=db, cursorclass=pymysql.cursors.DictCursor)

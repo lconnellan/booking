@@ -10,6 +10,11 @@ MAIL_USE_SSL = True
 MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
+# mysql database
+DB_PASS = os.environ.get('DBPASS')
+DB_IP = os.environ.get('DB_IP')
+DB_USER = os.environ.get('DB_USER')
+
 # testing
 #TESTING = True
 
