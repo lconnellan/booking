@@ -177,8 +177,8 @@ def create_account():
                         return redirect(url_for('create_account'))
             # insert new details into db
             db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
-                           address_1, address_2, address_3, city, county, postcode) \
-                           VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
+                           address_1, address_2, address_3, city, county, postcode, temp) \
+                           VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'Real')", \
                            (forms['name'], forms['surname'], forms['dob'], forms['phone_1'], \
                            forms['phone_2'], forms['address_1'], forms['address_2'], \
                            forms['address_3'], forms['city'], forms['county'], forms['postcode']))
@@ -565,7 +565,7 @@ def client_choice():
     if request.args.get('client_id'):
         flash('New Client Created')
         client_id = request.args.get('client_id')
-        db.cur.execute("SELECT name, surname FROM clients WHERE client_id=%s", client_id)
+        db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s", client_id)
         res = db.cur.fetchall()[0]
         prechosen = [res['name'] + ' '  + res['surname'], client_id]
     else:
@@ -997,8 +997,8 @@ def new_client():
                     return redirect(url_for('new_client'))
         # insert new details into db
         db.cur.execute("INSERT IGNORE INTO clients (name, surname, dob, phone_1, phone_2, \
-                       address_1, address_2, address_3, city, county, postcode) \
-                       VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", \
+                       address_1, address_2, address_3, city, county, postcode, temp) \
+                       VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'Real')", \
                        (forms['name'], forms['surname'], forms['dob'], forms['phone_1'], \
                        forms['phone_2'], forms['address_1'], forms['address_2'], \
                        forms['address_3'], forms['city'], forms['county'], forms['postcode']))

@@ -5,19 +5,20 @@ CREATE TABLE if not exists clients (
   name VARCHAR(80) NOT NULL,
   surname VARCHAR(80) NOT NULL,
   dob DATE,
-  phone_1 VARCHAR(25) NOT NULL,
+  phone_1 VARCHAR(25),
   phone_2 VARCHAR(25),
   address_1 VARCHAR(150),
   address_2 VARCHAR(150),
   address_3 VARCHAR(150),
   city VARCHAR(80),
   county VARCHAR(50),
-  postcode VARCHAR(10)
+  postcode VARCHAR(10),
+  temp ENUM('Real', 'Temp') NOT NULL
 );
-INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode)
-VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF'),
-(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT'),
-(3, 'Lloyd', 'Connellan', '1992-04-29', '038585857530', NULL, '13 Wild Rise', NULL, NULL, 'Cuckfield', NULL, 'RG56 LFK');
+INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode, temp)
+VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF', 'Real'),
+(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT', 'Real'),
+(3, 'Lloyd', 'Connellan', '1992-04-29', '038585857530', NULL, '13 Wild Rise', NULL, NULL, 'Cuckfield', NULL, 'RG56 LFK', 'Real');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
