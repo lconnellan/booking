@@ -18,9 +18,8 @@ class Database:
 
 db = Database()
 
-session_requests = requests.session()
-
 # authenticate login to website
+session_requests = requests.session()
 login_url = "https://rushcliff.com/r/login.php"
 result = session_requests.get(login_url)
 
@@ -29,7 +28,8 @@ auth = {
     "password": app.config.get('WEB_PASS')
 }
 
-result = session_requests.post(login_url, data = auth)
+
+result = session_requests.post(login_url, data=auth)
 
 # choose date starting period, look 30 days in advance
 date_dt = date(2020, 3, 9)
@@ -46,7 +46,7 @@ for d in date_range:
     result = session_requests.get(diary_url)
     soup = BeautifulSoup(result.text, "html.parser")
     divs = soup.find_all('div', {'class': 'diary_header_column_multi'})
-    divs = [d.prettify() for d in divs]
+    divs = [div.prettify() for div in divs]
 
     for div in divs:
         # check for certain prac name

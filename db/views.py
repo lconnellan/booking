@@ -11,6 +11,9 @@ import string
 from io import BytesIO
 from base64 import b64decode
 import intervals as intervals
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import re
 
 from db import app, mail
 
@@ -593,12 +596,111 @@ def confirmation():
             else:
                 client_id = session['client_id_tmp']
                 session.pop('client_id_tmp')
+
+            date = session['date']
+            time = session['time_slot']
             db.cur.execute("INSERT IGNORE INTO bookings (prac_id, client_id, treat_id, name,\
                            start, end, descr, price, pay_status) VALUES(%s, %s, %s, %s, %s, %s, \
                            %s, %s, 'not paid')", (str(session['prac_id']), str(client_id), \
-                           str(session['treat_id']), session['date'], session['time_slot'], \
-                           session['end'], request.form['descr'], session['price']))
+                           str(session['treat_id']), date, time, session['end'], \
+                           request.form['descr'], session['price']))
             db.con.commit()
+
+            db.cur.execute("SELECT name, surname FROM clients WHERE client_id = %s", str(client_id))
+            res = db.cur.fetchall()[0]
+            first_name = res['name']
+            surname = res['surname']
+
+            db.cur.execute("SELECT * FROM treatments WHERE treat_id = %s", str(session['treat_id']))
+            duration = db.cur.fetchall()[0]['duration']
+            duration = str(int(float(duration))*60 + round((float(duration) % 1)*100))
+
+            # book appointment in parallel with remote website
+            options = webdriver.FirefoxOptions()
+            options.add_argument('-headless')
+            driver = webdriver.Firefox(firefox_options=options)
+
+            driver.get('https://www.rushcliff.com/r/login.php')
+
+            auth = {
+                "uid": app.config.get('WEB_ID'),
+                "password": app.config.get('WEB_PASS')
+            }
+
+            # type in username
+            user_box = driver.find_element_by_id('uid')
+            user_box.send_keys(app.config.get('WEB_ID'))
+
+            # type in password
+            pass_box = driver.find_element_by_id('password')
+            pass_box.send_keys(app.config.get('WEB_PASS'))
+
+            #submit
+            submit = driver.find_element_by_id('submit_login')
+            submit.click()
+
+            # book an appointment with the given date, time, etc.
+            driver.get("https://www.rushcliff.com/r/diary.php?action=current&" + \
+                       "p=Wesley Connellan&sdate=" + date + "&t=" + time + "&d=" + duration + \
+                       "&l=Livingston&r=Livingston 1")
+
+            # search via surname
+            client_search = driver.find_element_by_id('sv')
+            client_search.send_keys(surname)
+
+            submit = driver.find_element_by_id('submit_client_search')
+            submit.click()
+
+            # search through result for match
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            results = soup.find_all('div', attrs={'class': 'client_search_highlight'})
+            found = False
+            for result in results:
+                search = re.search(r'<b>\s*' + surname + '\s*</b>\s*, ' + first_name, \
+                                   result.prettify())
+                if search is not None:
+                    url = result.find_all('a', attrs={'class': 'link'})[0].get('href')
+                    found = True
+            results = soup.find_all('div', attrs={'class': 'client_search_no_highlight'})
+            for result in results:
+                search = re.search(r'<b>\s*' + surname + '\s*</b>\s*, ' + first_name, \
+                                   result.prettify())
+                if search is not None:
+                    url = result.find_all('a', attrs={'class': 'link'})[0].get('href')
+                    found = True
+
+            # if client doesn't exist, make a new client
+            if not found:
+                driver.get('https://www.rushcliff.com/r/clients.php?action=add')
+                name_select = driver.find_element_by_id('firstname')
+                name_select.send_keys(first_name)
+
+                lname_select = driver.find_element_by_id('surname')
+                lname_select.send_keys(surname)
+
+                submit = driver.find_element_by_id('submit_client')
+                submit.click()
+
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                book_appt = soup.find_all('div', attrs={'class': 'action_link action_normal'})[0]
+                url = book_appt.find_all('a')[0].get('href')
+
+            # go to appointment submission screen using client url
+            driver.get('https://www.rushcliff.com/r/' + url)
+
+            # tick new client box if new
+            if not found:
+                new_box = driver.find_element_by_id('newcl')
+                new_box.click()
+
+            location_select = driver.find_element_by_id('l')
+            location_select.send_keys('Livingston')
+
+            room_select = driver.find_element_by_id('r')
+            room_select.send_keys('Livingston 1')
+
+            submit = driver.find_element_by_id('submit_diary_item')
+            submit.click()
 
             return redirect(url_for('completed'))
         elif request.form['answer'] == "cancel":
@@ -1064,3 +1166,11 @@ def view_image():
 @app.route('/pdf')
 def pdf():
     return render_template('pdf.html')
+
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    output = ""
+    if request.method == 'POST':
+        output = request.form
+        return render_template('test.html', output=output)
+    return render_template('test.html', output=output)

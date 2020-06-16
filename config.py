@@ -15,6 +15,10 @@ DB_PASS = os.environ.get('DBPASS')
 DB_IP = os.environ.get('DB_IP')
 DB_USER = os.environ.get('DB_USER')
 
+# web database
+WEB_ID = os.environ.get('WEB_ID')
+WEB_PASS = os.environ.get('WEB_PASS')
+
 # testing
 #TESTING = True
 
