@@ -1066,6 +1066,73 @@ def block_periods():
     res = db.list_table('blocked_periods')
     if request.method == 'POST':
         if 'submit' in request.form:
+            # calculate duration
+            start = datetime.strptime(request.form['start'], '%H:%M')
+            end = datetime.strptime(request.form['end'], '%H:%M')
+            duration = str(round((end - start).total_seconds() / 60))
+
+            # book appointment in parallel with remote website
+            options = webdriver.FirefoxOptions()
+            options.add_argument('-headless')
+            driver = webdriver.Firefox(firefox_options=options)
+
+            driver.get('https://www.rushcliff.com/r/login.php')
+
+            auth = {
+                "uid": app.config.get('WEB_ID'),
+                "password": app.config.get('WEB_PASS')
+            }
+
+            # type in username
+            user_box = driver.find_element_by_id('uid')
+            user_box.send_keys(app.config.get('WEB_ID'))
+
+            # type in password
+            pass_box = driver.find_element_by_id('password')
+            pass_box.send_keys(app.config.get('WEB_PASS'))
+
+            #submit
+            submit = driver.find_element_by_id('submit_login')
+            submit.click()
+
+            # book an appointment with the given date, time, etc.
+            driver.get("https://www.rushcliff.com/r/diary.php?action=current&" + \
+                       "p=Wesley Connellan&sdate=" + request.form['date'] + "&t=" + \
+                       request.form['start'] + "&d=" + duration + "&l=Livingston&r=Livingston 1")
+
+            # search for 'Blocked'
+            client_search = driver.find_element_by_id('sv')
+            client_search.send_keys('Blocked')
+
+            submit = driver.find_element_by_id('submit_client_search')
+            submit.click()
+
+            # search through result for match
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            results = soup.find_all('div', attrs={'class': 'client_search_highlight'})
+            for result in results:
+                search = re.search('Blocked', result.prettify())
+                if search is not None:
+                    url = result.find_all('a', attrs={'class': 'link'})[0].get('href')
+            results = soup.find_all('div', attrs={'class': 'client_search_no_highlight'})
+            for result in results:
+                search = re.search('Blocked', result.prettify())
+                if search is not None:
+                    url = result.find_all('a', attrs={'class': 'link'})[0].get('href')
+
+            # go to appointment submission screen using client url
+            driver.get('https://www.rushcliff.com/r/' + url)
+
+            location_select = driver.find_element_by_id('l')
+            location_select.send_keys('Livingston')
+
+            room_select = driver.find_element_by_id('r')
+            room_select.send_keys('Livingston 1')
+
+            submit = driver.find_element_by_id('submit_diary_item')
+            submit.click()
+
+            # finally block the period locally
             db.cur.execute("INSERT IGNORE INTO blocked_periods (date, start, end, prac_id) \
                            VALUES(%s, %s, %s, %s)", (request.form['date'], request.form['start'], \
                            request.form['end'], str(prac_id)))
