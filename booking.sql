@@ -16,9 +16,7 @@ CREATE TABLE if not exists clients (
   temp ENUM('Real', 'Temp') NOT NULL
 );
 INSERT IGNORE INTO clients (client_id, name, surname, dob, phone_1, phone_2, address_1, address_2, address_3, city, county, postcode, temp)
-VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF', 'Real'),
-(2, 'Alice', 'Smith', '1993-06-01', '03835734709', '380476498344', 'Room 23', 'Flat 12', '7 Park Road', 'Perth', 'Perth and Kinross', 'RH14 2RT', 'Real'),
-(3, 'Lloyd', 'Connellan', '1992-04-29', '038585857530', NULL, '13 Wild Rise', NULL, NULL, 'Cuckfield', NULL, 'RG56 LFK', 'Real');
+VALUES(1, 'John', 'Doe', '1980-12-17', '07923424294', NULL, '13 Place Road', NULL, NULL, 'Edinburgh', NULL, 'RH16 4RF', 'Real');
 
 CREATE TABLE if not exists practitioners (
   prac_id SERIAL PRIMARY KEY,
@@ -78,10 +76,6 @@ BEGIN
   END IF;
 END; //
 DELIMITER ;
-
-INSERT IGNORE INTO bookings (booking_id, prac_id, client_id, treat_id, name, start, end, descr, price, pay_status, pay_timestamp)
-VALUES(1, 1, 1, 1, '2020-02-13', '10:30', '11:00', 'arm pain', 40.00, 'not paid', NULL),
-(2, 1, 3, 2, '2020-02-01', '9:30', '10:30', NULL, 30.00, 'cash', NOW());
 
 CREATE TABLE if not exists freqs (
   freq_id SERIAL PRIMARY KEY,
@@ -155,9 +149,7 @@ CREATE TABLE if not exists users (
 );
 
 INSERT IGNORE INTO users (user_id, email, password, access_lvl, client_id, prac_id)
-VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1),
-(2, 'john.doe@gmail.com', MD5('user'), 0, 1, NULL),
-(3, 'lloyd.connellan@gmail.com', MD5('lasagna'), 0, 3, NULL);
+VALUES(1, 'wesleyconnellan@gmail.com', MD5('admin'), 2, NULL, 1);
 
 CREATE TABLE if not exists notes (
   note_id SERIAL PRIMARY KEY,

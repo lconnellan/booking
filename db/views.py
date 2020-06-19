@@ -193,7 +193,7 @@ def create_account():
                            (email, password, key, client_id))
             db.con.commit()
             # send email with confirmation link
-            link = 'http://192.168.251.131:6789/email_confirmation/' + key
+            link = 'http://livingston-fw.ddns.net/email_confirmation/' + key
             msg = Message("Framework Livingston - Email verification", \
                           sender=app.config.get('MAIL_USERNAME'), recipients=[email])
             msg.html = render_template('pass_confirm.html', link=link)
@@ -242,7 +242,7 @@ def reset_password():
         db.cur.execute("UPDATE users SET auth_key = %s WHERE email = %s", (key, email))
         db.con.commit()
         # send email with confirmation link
-        link = 'http://192.168.251.131:6789/reset_confirmation/' + key
+        link = 'http://livingston-fw.ddns.net/reset_confirmation/' + key
         msg = Message("Framework Livingston - Password reset confirmation", \
                       sender=app.config.get('MAIL_USERNAME'), recipients=[email])
         msg.html = render_template('pass_reset.html', link=link)
@@ -1209,7 +1209,7 @@ def link_email():
         # generate random auth key
         key = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
         # send email with confirmation link
-        link = 'http://192.168.251.131:6789/email_confirmation/pass/' + key
+        link = 'http://livingston-fw.ddns.net/email_confirmation/pass/' + key
         db.cur.execute("UPDATE users SET email = %s, auth_key = %s WHERE client_id = %s", \
                       (email, key, client_id))
         db.con.commit()
