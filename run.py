@@ -1,6 +1,7 @@
 #!database/bin/python
 from db import app
 
+# imports for reminders
 from send_reminders import send_reminder
 import schedule
 from threading import Thread

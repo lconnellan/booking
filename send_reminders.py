@@ -17,7 +17,10 @@ def send_reminder():
     for client_id in clients:
         d2 = (today + timedelta(2)).strftime('%Y-%m-%d')
         db.cur.execute("SELECT email FROM users WHERE client_id = %s", client_id)
-        email = db.cur.fetchall()[0]['email']
+        try:
+            email = db.cur.fetchall()[0]['email']
+        except:
+            continue
         db.cur.execute("SELECT name FROM clients WHERE client_id = %s", client_id)
         name = db.cur.fetchall()[0]['name']
         db.cur.execute("SELECT * FROM bookings WHERE client_id = %s AND name = %s", \
